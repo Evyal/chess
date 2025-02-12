@@ -1,4 +1,4 @@
-#include "Piece.h"
+#include "piece.h"
 #include <cmath>
 
 // Pawn implementation (example)
