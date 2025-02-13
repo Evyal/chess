@@ -3,36 +3,45 @@
 
 #include "constants.hpp"
 #include "piece.h"
+#include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include <vector>
+#include <map>
 
 class Board {
 private:
-  int board_[constants::squares][constants::squares] = {{}, {}, {}, {},
-                                                        {}, {}, {}, {}};
-
+  Piece *board[constants::squares][constants::squares] = {{}, {}, {}, {},
+                                                          {}, {}, {}, {}};
   sf::RenderWindow *window;
 
-  sf::Texture pieceTextures[7][2]; // 6 types of pieces, 2 colors
-  std::map<int, sf::Sprite> pieceSprites;
-
-  sf::Texture background;
-  sf::Texture board;
+  // BOARD TEXTURES
+  sf::Texture backgroundTexture;
+  sf::Texture boardTexture;
   sf::Sprite backgroundSprite;
   sf::Sprite boardSprite;
 
+  // PIECE TEXTURES
+  std::map<int, sf::Texture> pieceTextures;
+  std::map<int, sf::Sprite> pieceSprites;
+
   void loadTextures();
-  void initializeBoard();
+  void loadPieceTextures(); // New function to load piece images
 
 public:
+  // CONSTRUCTORS and DESTRUCTORS
+
+  Board();
   Board(sf::RenderWindow *win);
+  ~Board();
+
+  // MOVING PIECES
+
+  Piece *getPiece(int x, int y);
+  void movePiece(int startX, int startY, int endX, int endY);
+
+  // GRAPHICS
+
+  void initializeBoard();
   void draw();
-
-  // Board();
-  // ~Board();
-
-  // void display();
-  // bool movePiece(int startX, int startY, int endX, int endY);
 };
 
 #endif

@@ -2,40 +2,78 @@
 #define PIECE_H
 
 class Piece {
+protected:
+  bool isWhite; // true = white, false = black
+
 public:
-    virtual bool isValidMove(int startX, int startY, int endX, int endY) = 0;
-    virtual char getSymbol() const = 0; // For displaying the piece
-    // You might also want to add color or other attributes
+  Piece(bool white) : isWhite(white) {}
+  virtual ~Piece() = default;
+
+  virtual int getType() = 0;
+  virtual char getSymbol() const = 0;
+  bool isWhitePiece() const { return isWhite; }
+
+  virtual bool isValidMove(int startX, int startY, int endX, int endY) = 0;
 };
 
 class Pawn : public Piece {
 public:
-    bool isValidMove(int startX, int startY, int endX, int endY) override;
-    char getSymbol() const override { return 'P'; }
+  Pawn(bool white) : Piece(white) {}
+
+  int getType() override;
+  char getSymbol() const override { return 'P'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
 };
 
 class Rook : public Piece {
 public:
-    bool isValidMove(int startX, int startY, int endX, int endY) override;
-    char getSymbol() const override { return 'R'; }
-};
+  Rook(bool white) : Piece(white) {}
 
-class Bishop : public Piece {
-public:
-    bool isValidMove(int startX, int startY, int endX, int endY) override;
-    char getSymbol() const override { return 'B'; }
+  int getType() override;
+  char getSymbol() const override { return 'R'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
 };
 
 class Knight : public Piece {
 public:
-    bool isValidMove(int startX, int startY, int endX, int endY) override;
-    char getSymbol() const override { return 'N'; }
+  Knight(bool white) : Piece(white) {}
+
+  int getType() override;
+  char getSymbol() const override { return 'N'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
+};
+
+class Bishop : public Piece {
+public:
+  Bishop(bool white) : Piece(white) {}
+
+  int getType() override;
+  char getSymbol() const override { return 'B'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
 };
 
 class Queen : public Piece {
 public:
-    bool isValidMove(int startX, int startY, int endX, int endY) override;
-    char getSymbol() const override { return 'Q'; }
+  Queen(bool white) : Piece(white) {}
+
+  int getType() override;
+  char getSymbol() const override { return 'Q'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
+};
+
+class King : public Piece {
+public:
+  King(bool white) : Piece(white) {}
+
+  int getType() override;
+  char getSymbol() const override { return 'K'; }
+
+  bool isValidMove(int startX, int startY, int endX, int endY) override;
 };
 
 #endif

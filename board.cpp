@@ -1,121 +1,139 @@
 #include "board.h"
 #include "constants.hpp"
+#include "piece.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <iostream>
 
 Board::Board(sf::RenderWindow *win) : window(win) {
   loadTextures();
+  loadPieceTextures();
   initializeBoard();
 }
 
-void Board::loadTextures() {
-  std::string pieceNames[] = {"p", "r", "n", "b", "q", "k"};
-  std::string colors[] = {"w", "b"}; // White and Black
-
-  for (int i{0}; i < 6; i++) {
-    for (int j = 0; j < 2; j++) {
-      std::string filename = "../bases/" + colors[j] + pieceNames[i] + ".png";
-      if (!pieceTextures[i][j].loadFromFile(filename)) {
-        std::cerr << "Failed to load " << filename << std::endl;
-      }
+Board::~Board() {
+  // Free dynamically allocated memory for pieces
+  for (int i = 0; i < constants::squares; i++) {
+    for (int j = 0; j < constants::squares; j++) {
+      delete board[i][j]; // Delete each dynamically allocated Piece
     }
   }
+}
 
-  // Map integer values to sprites
-  for (int i{1}; i < 7; i++) {
-    pieceSprites[i].setTexture(pieceTextures[i - 1][0]);  // White pieces
-    pieceSprites[-i].setTexture(pieceTextures[i - 1][1]); // Black pieces
-  }
-
-  if (!background.loadFromFile("../bases/background.png")) {
+void Board::loadTextures() {
+  if (!backgroundTexture.loadFromFile("../bases/background.png")) {
     std::cerr << "Failed to load " << "../bases/background.png" << std::endl;
   }
 
-  if (!board.loadFromFile("../bases/board.png")) {
+  if (!boardTexture.loadFromFile("../bases/board.png")) {
     std::cerr << "Failed to load " << "../bases/board.png" << std::endl;
   }
 
-  backgroundSprite.setTexture(background);
-  boardSprite.setTexture(board);
+  backgroundSprite.setTexture(backgroundTexture);
+  boardSprite.setTexture(boardTexture);
+}
+
+void Board::loadPieceTextures() {
+  std::map<int, std::string> pieceFiles = {
+      {1, "wp.png"},  {2, "wr.png"},  {3, "wn.png"},  {4, "wb.png"},
+      {5, "wq.png"},  {6, "wk.png"},  {-1, "bp.png"}, {-2, "br.png"},
+      {-3, "bn.png"}, {-4, "bb.png"}, {-5, "bq.png"}, {-6, "bk.png"}};
+
+  for (const auto &pair : pieceFiles) {
+    int pieceType = pair.first;
+    std::string filename = "../bases/" + pair.second;
+
+    if (!pieceTextures[pieceType].loadFromFile(filename)) {
+      std::cerr << "Failed to load " << filename << std::endl;
+    } else {
+      pieceSprites[pieceType].setTexture(pieceTextures[pieceType]);
+    }
+  }
 }
 
 void Board::initializeBoard() {
-  for (size_t i{0}; i < constants::squares; i++) {
-    for (size_t j{0}; j < constants::squares; j++) {
-      board_[i][j] = 0;
-    }
+  for (int i{0}; i < 8; i++) {
+    board[1][i] = new Pawn(true);  // White Pawn
+    board[6][i] = new Pawn(false); // Black Pawn
   }
 
-  // Setup chess pieces (White = Positive, Black = Negative)
-  for (int i = 0; i < 8; i++) {
-    board_[1][i] = 1;  // White pawn
-    board_[6][i] = -1; // Black pawn
-  }
+  // Place Rooks
+  board[0][0] = new Rook(true);
+  board[0][7] = new Rook(true);
+  board[7][0] = new Rook(false);
+  board[7][7] = new Rook(false);
 
-  board_[0][0] = board_[0][7] = 2;  // White rooks
-  board_[7][0] = board_[7][7] = -2; // Black rooks
+  // Place Knights
+  board[0][1] = new Knight(true);
+  board[0][6] = new Knight(true);
+  board[7][1] = new Knight(false);
+  board[7][6] = new Knight(false);
 
-  // KNIGHTS
-  board_[0][1] = 3;
-  board_[0][6] = 3;
-  board_[7][1] = -3;
-  board_[7][6] = -3;
+  // Place Bishops
+  board[0][2] = new Bishop(true);
+  board[0][5] = new Bishop(true);
+  board[7][2] = new Bishop(false);
+  board[7][5] = new Bishop(false);
 
-  // BISHOPS
-  board_[0][2] = 4;
-  board_[0][5] = 4;
-  board_[7][2] = -4;
-  board_[7][5] = -4;
+  // Place Kings
+  board[0][3] = new King(true);
+  board[7][3] = new King(false);
 
-  board_[0][4] = 5;  // White queen
-  board_[7][4] = -5; // Black queen
-
-  board_[0][3] = 6;  // White king
-  board_[7][3] = -6; // Black king
+  // Place Queens
+  board[0][4] = new Queen(true);
+  board[7][4] = new Queen(false);
 }
 
 void Board::draw() {
 
   backgroundSprite.setPosition(0, 0);
-  boardSprite.setPosition(constants::marginSize, constants::marginSize);
-
   backgroundSprite.setScale(
       constants::windowWidth / backgroundSprite.getLocalBounds().width,
       constants::windowHeight / backgroundSprite.getLocalBounds().height);
+  window->draw(backgroundSprite);
+
+  boardSprite.setPosition(constants::marginSize, constants::marginSize);
   boardSprite.setScale(
       constants::boardWidth / boardSprite.getLocalBounds().width,
       constants::boardHeight / boardSprite.getLocalBounds().height);
-
-  window->draw(backgroundSprite);
   window->draw(boardSprite);
 
-  // sf::RectangleShape tile(
-  //     sf::Vector2f(constants::tileSize, constants::tileSize));
+  for (int i = 0; i < constants::squares; i++) {
+    for (int j = 0; j < constants::squares; j++) {
+      if (board[i][j] != nullptr) {
 
-  for (size_t i{0}; i < constants::squares; i++) {
-    for (size_t j{0}; j < constants::squares; j++) {
-      // if (i == 0 || j == 0)
-      //   continue; // Skip labels
+        int pieceType =
+            board[i][j]->getType(); // Assuming you have a getType() function
 
-      // tile.setFillColor((i + j) % 2 == 0 ? sf::Color::White
-      //                                    : sf::Color(150, 75, 0));
-      // tile.setPosition(static_cast<float>(j) * constants::tileSize,
-      //                  static_cast<float>(i) * constants::tileSize);
-      // window->draw(tile);
-
-      // Draw pieces
-      int piece = board_[i][j];
-      if (piece != 0) {
-        sf::Sprite &sprite = pieceSprites[piece];
-        sprite.setPosition(static_cast<float>(j) * constants::tileSize +
-                               constants::marginSize,
-                           static_cast<float>(i) * constants::tileSize +
-                               constants::marginSize);
-        sprite.setScale(constants::tileSize / sprite.getLocalBounds().width,
-                        constants::tileSize / sprite.getLocalBounds().height);
-        window->draw(sprite);
+        if (pieceSprites.find(pieceType) != pieceSprites.end()) {
+          sf::Sprite &sprite = pieceSprites[pieceType];
+          sprite.setPosition(static_cast<float>(j) * constants::tileSize +
+                                 constants::marginSize,
+                             static_cast<float>(i) * constants::tileSize +
+                                 constants::marginSize);
+          sprite.setScale(
+              constants::tileSize / sprite.getLocalBounds().width,
+              constants::tileSize /
+                  sprite.getLocalBounds().height); // Adjust scaling if needed
+          window->draw(sprite);
+        }
       }
     }
+  }
+}
+
+Piece* Board::getPiece(int x, int y) {
+  if (x >= 0 && x < constants::squares && y >= 0 && y < constants::squares) {
+    return board[x][y];
+  }
+  return nullptr;
+}
+
+// Move a piece from one position to another
+void Board::movePiece(int startX, int startY, int endX, int endY) {
+  Piece *piece = board[startX][startY];
+  if (piece) {
+    board[endX][endY] = piece;
+    board[startX][startY] = nullptr;
   }
 }
