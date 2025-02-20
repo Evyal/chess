@@ -2,10 +2,11 @@
 #include "constants.hpp"
 #include "piece.h"
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <iostream>
 
-Board::Board(sf::RenderWindow *win) : window(win) {
+Board::Board() {
   loadTextures();
   loadPieceTextures();
   initializeBoard();
@@ -84,19 +85,19 @@ void Board::initializeBoard() {
   board[7][4] = new Queen(false);
 }
 
-void Board::draw() {
+void Board::draw(sf::RenderWindow &window) {
 
   backgroundSprite.setPosition(0, 0);
   backgroundSprite.setScale(
       constants::windowWidth / backgroundSprite.getLocalBounds().width,
       constants::windowHeight / backgroundSprite.getLocalBounds().height);
-  window->draw(backgroundSprite);
+  window.draw(backgroundSprite);
 
   boardSprite.setPosition(constants::marginSize, constants::marginSize);
   boardSprite.setScale(
       constants::boardWidth / boardSprite.getLocalBounds().width,
       constants::boardHeight / boardSprite.getLocalBounds().height);
-  window->draw(boardSprite);
+  window.draw(boardSprite);
 
   for (int i = 0; i < constants::squares; i++) {
     for (int j = 0; j < constants::squares; j++) {
@@ -115,25 +116,30 @@ void Board::draw() {
               constants::tileSize / sprite.getLocalBounds().width,
               constants::tileSize /
                   sprite.getLocalBounds().height); // Adjust scaling if needed
-          window->draw(sprite);
+          window.draw(sprite);
         }
       }
     }
   }
 }
 
-Piece* Board::getPiece(int x, int y) {
-  if (x >= 0 && x < constants::squares && y >= 0 && y < constants::squares) {
-    return board[x][y];
-  }
-  return nullptr;
-}
+Piece *Board::getPiece(int x, int y) const { return board[x][y]; }
 
 // Move a piece from one position to another
 void Board::movePiece(int startX, int startY, int endX, int endY) {
-  Piece *piece = board[startX][startY];
-  if (piece) {
-    board[endX][endY] = piece;
-    board[startX][startY] = nullptr;
+  if (startX < 0 || startX >= constants::squares ||
+      startY < 0 || startY >= constants::squares ||
+      endX < 0 || endX >= constants::squares ||
+      endY < 0 || endY >= constants::squares) {
+      std::cerr << "movePiece: Invalid coordinates!" << std::endl;
+      return;
   }
+
+  if (!board[startX][startY]) {
+      std::cerr << "movePiece: No piece at (" << startX << ", " << startY << ")" << std::endl;
+      return; // Avoid null pointer access
+  }
+
+  board[endX][endY] = board[startX][startY];
+  board[startX][startY] = nullptr;
 }

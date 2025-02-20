@@ -9,7 +9,8 @@ namespace constants {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Window constanst
 inline constexpr int squares{8};
-inline constexpr float tileSize{90.f};
+inline constexpr int tileSize{90};
+inline constexpr int tileNumber{squares * squares};
 
 inline constexpr int boardWidth{static_cast<int>(tileSize) * squares};
 inline constexpr int boardHeight{static_cast<int>(tileSize) * squares};

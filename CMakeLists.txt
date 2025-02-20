@@ -20,9 +20,9 @@ string(APPEND CMAKE_CXX_FLAGS
 string(APPEND CMAKE_CXX_FLAGS_DEBUG " -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-omit-frame-pointer")
 string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
 
-find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
+find_package(SFML 2.5.1 COMPONENTS graphics REQUIRED)
 find_package(TGUI 1 REQUIRED)
 
-add_executable(chess piece.cpp board.cpp main.cpp)
+add_executable(chess game.cpp piece.cpp board.cpp main.cpp)
 
 target_link_libraries(chess sfml-graphics TGUI::TGUI)

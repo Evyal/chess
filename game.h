@@ -2,30 +2,41 @@
 #define GAME_H
 
 #include "board.h"
+#include "constants.hpp"
+#include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Vector2.hpp>
+#include <TGUI/Widgets/Button.hpp>
+#include <TGUI/Widgets/EditBoxSlider.hpp>
+#include <TGUI/Widgets/Label.hpp>
 class Game {
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 private:
+  sf::RenderWindow window;
+  tgui::Gui gui;
+
   Board board;
-  bool whiteTurn;
+
+  tgui::Button::Ptr tiles[constants::squares][constants::squares];
+  std::pair<int, int> selectedTile{-1, -1};
+
+  bool whiteTurn = true; // Track turn
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public:
-  Game() : whiteTurn(true) {}
+  Game();
+  void setup();
+  void run();
 
-  // TURN LOGIC
-
-  void switchTurn();
-  bool isWhiteTurn() const;
-  void makeMove(int startX, int startY, int endX, int endY);
-
-  bool isCheckmate() {
-    // Implement checkmate logic by:
-    // 1. Check if the King is in check
-    // 2. Check if the King can move to a safe square
-    // 3. Check if other pieces can block or capture attacking pieces
-
-    return false; // Placeholder, implement checkmate detection
-  }
-
-  // Add other game logic like turn management, detecting check, etc.
+  void createButtons();
+  void handleButtonClick(int row, int col);
 };
 
 #endif

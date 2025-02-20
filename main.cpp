@@ -1,25 +1,10 @@
-#include "board.h"
-#include "constants.hpp"
+#include "game.h"
 #include <SFML/Graphics.hpp>
 
 int main() {
-  sf::RenderWindow window(
-      sf::VideoMode(constants::windowWidth, constants::windowHeight),
-      "Chess Board");
-  window.setPosition({480, 80});
-  Board board(&window);
 
-  while (window.isOpen()) {
-    sf::Event event;
-    while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed)
-        window.close();
-    }
+  Game game;
+  game.setup();
 
-    window.clear();
-    board.draw();
-    window.display();
-  }
-
-  return 0;
+  game.run();
 }
