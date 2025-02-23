@@ -1,23 +1,34 @@
 #include "piece.h"
+#include "board.h"
 #include <cmath>
 
-bool Pawn::isValidMove(int startX, int startY, int endX, int endY) {
-  int direction = isWhite ? 1 : -1; // White moves up, black moves down
+bool Pawn::isValidMove(int startX, int startY, int endX, int endY,
+                       const Board &board) {
+  int direction = isWhite ? 1 : -1; // White moves up, Black moves down
 
-  // Standard move (one step forward)
-  if (endX == startX + direction && endY == startY)
+  // Standard move (one step forward) - only allowed if target is empty
+  if (endY == startY + direction && endX == startX &&
+      board.getPiece(endX, endY) == nullptr) {
     return true;
-
-  // First move can be two steps forward
-  if ((startX == 2 && isWhite) || (startX == 7 && !isWhite)) {
-    if (endX == startX + 2 * direction && endY == startY)
-      return true;
   }
 
-  // Diagonal capture
-  if (endX == startX + direction &&
-      (endY == startY + 1 || endY == startY - 1)) {
-    return true;
+  // First move can be two steps forward, if the path is clear
+  if ((startY == 1 && isWhite) || (startY == 6 && !isWhite)) {
+    if (endY == startY + 2 * direction && endX == startX &&
+        board.getPiece(startX, startY + direction) == nullptr &&
+        board.getPiece(endX, endY) == nullptr) {
+      return true;
+    }
+  }
+
+  // Diagonal capture - only allowed if there's an opponent piece
+  if (endY == startY + direction &&
+      (endX == startX + 1 || endX == startX - 1)) {
+    Piece *target = board.getPiece(endX, endY);
+    if (target &&
+        target->isWhitePiece() != isWhite) { // Capturing an opponent piece
+      return true;
+    }
   }
 
   return false;
@@ -30,8 +41,11 @@ int Pawn::getType() {
   return -1;
 }
 
-bool Rook::isValidMove(int startX, int startY, int endX, int endY) {
-  return (startX == endX || startY == endY);
+bool Rook::isValidMove(int startX, int startY, int endX, int endY,
+                       const Board &board) {
+  if (startX != endX && startY != endY)
+    return false;
+  return board.isPathClear(startX, startY, endX, endY);
 }
 
 int Rook::getType() {
@@ -41,7 +55,8 @@ int Rook::getType() {
   return -2;
 }
 
-bool Knight::isValidMove(int startX, int startY, int endX, int endY) {
+bool Knight::isValidMove(int startX, int startY, int endX, int endY,
+                         const Board &board) {
   int dx = abs(endX - startX);
   int dy = abs(endY - startY);
   return (dx == 2 && dy == 1) || (dx == 1 && dy == 2);
@@ -54,8 +69,11 @@ int Knight::getType() {
   return -3;
 }
 
-bool Bishop::isValidMove(int startX, int startY, int endX, int endY) {
-  return abs(endX - startX) == abs(endY - startY);
+bool Bishop::isValidMove(int startX, int startY, int endX, int endY,
+                         const Board &board) {
+  if (abs(endX - startX) != abs(endY - startY))
+    return false;
+  return board.isPathClear(startX, startY, endX, endY);
 }
 
 int Bishop::getType() {
@@ -65,9 +83,13 @@ int Bishop::getType() {
   return -4;
 }
 
-bool Queen::isValidMove(int startX, int startY, int endX, int endY) {
-  return ((startX == endX || startY == endY) ||
-          abs(endX - startX) == abs(endY - startY));
+bool Queen::isValidMove(int startX, int startY, int endX, int endY,
+                        const Board &board) {
+  if ((startX == endX || startY == endY) ||
+      (abs(endX - startX) == abs(endY - startY))) {
+    return board.isPathClear(startX, startY, endX, endY);
+  }
+  return false;
 }
 
 int Queen::getType() {
@@ -77,11 +99,47 @@ int Queen::getType() {
   return -5;
 }
 
-bool King::isValidMove(int startX, int startY, int endX, int endY) {
+bool King::isValidMove(int startX, int startY, int endX, int endY, const Board& board) {
   int dx = abs(endX - startX);
   int dy = abs(endY - startY);
-  return (dx <= 1 && dy <= 1);
+
+  // Normal King move (one square in any direction)
+  if (dx <= 1 && dy <= 1) {
+    return true;
+  }
+
+  // Castling logic
+  if (!hasMovedBefore() && startY == endY) { // King moves horizontally for castling
+    if (endX == startX + 2 || endX == startX - 2) { // Castling happens two squares left or right
+      int rookX = (endX > startX) ? 7 : 0; // Determine which rook (right or left)
+      Piece* rook = board.getPiece(rookX, startY);
+
+      // Check if a rook is present and hasn't moved
+      if (rook && (rook->getType() == 2 || rook->getType() == -2) && !rook->hasMovedBefore()) {
+        
+        // Ensure no pieces are between king and rook
+        int step = (endX > startX) ? 1 : -1;
+        for (int x = startX + step; x != rookX; x += step) {
+          if (board.getPiece(x, startY)) {
+            return false; // Pieces are blocking
+          }
+        }
+
+        // Ensure the king is not in check, does not move through check, and does not end in check
+        for (int x = startX; x != endX + step; x += step) {
+          if (board.isSquareUnderAttack(x, startY, isWhitePiece())) {
+            return false; // King moves through or into check
+          }
+        }
+
+        return true; // Castling is allowed
+      }
+    }
+  }
+
+  return false;
 }
+
 
 int King::getType() {
   if (isWhitePiece()) {

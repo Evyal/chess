@@ -54,35 +54,35 @@ void Board::loadPieceTextures() {
 
 void Board::initializeBoard() {
   for (int i{0}; i < 8; i++) {
-    board[1][i] = new Pawn(true);  // White Pawn
-    board[6][i] = new Pawn(false); // Black Pawn
+    board[i][1] = new Pawn(true);  // White Pawn
+    board[i][6] = new Pawn(false); // Black Pawn
   }
 
   // Place Rooks
   board[0][0] = new Rook(true);
-  board[0][7] = new Rook(true);
-  board[7][0] = new Rook(false);
+  board[7][0] = new Rook(true);
+  board[0][7] = new Rook(false);
   board[7][7] = new Rook(false);
 
   // Place Knights
-  board[0][1] = new Knight(true);
-  board[0][6] = new Knight(true);
-  board[7][1] = new Knight(false);
-  board[7][6] = new Knight(false);
+  board[1][0] = new Knight(true);
+  board[6][0] = new Knight(true);
+  board[1][7] = new Knight(false);
+  board[6][7] = new Knight(false);
 
   // Place Bishops
-  board[0][2] = new Bishop(true);
-  board[0][5] = new Bishop(true);
-  board[7][2] = new Bishop(false);
-  board[7][5] = new Bishop(false);
+  board[2][0] = new Bishop(true);
+  board[5][0] = new Bishop(true);
+  board[2][7] = new Bishop(false);
+  board[5][7] = new Bishop(false);
 
   // Place Kings
-  board[0][3] = new King(true);
-  board[7][3] = new King(false);
+  board[4][0] = new King(true);
+  board[4][7] = new King(false);
 
   // Place Queens
-  board[0][4] = new Queen(true);
-  board[7][4] = new Queen(false);
+  board[3][0] = new Queen(true);
+  board[3][7] = new Queen(false);
 }
 
 void Board::draw(sf::RenderWindow &window) {
@@ -99,8 +99,8 @@ void Board::draw(sf::RenderWindow &window) {
       constants::boardHeight / boardSprite.getLocalBounds().height);
   window.draw(boardSprite);
 
-  for (int i = 0; i < constants::squares; i++) {
-    for (int j = 0; j < constants::squares; j++) {
+  for (int i{0}; i < constants::squares; i++) {
+    for (int j{0}; j < constants::squares; j++) {
       if (board[i][j] != nullptr) {
 
         int pieceType =
@@ -108,9 +108,10 @@ void Board::draw(sf::RenderWindow &window) {
 
         if (pieceSprites.find(pieceType) != pieceSprites.end()) {
           sf::Sprite &sprite = pieceSprites[pieceType];
-          sprite.setPosition(static_cast<float>(j) * constants::tileSize +
+          sprite.setPosition(static_cast<float>(i) * constants::tileSize +
                                  constants::marginSize,
-                             static_cast<float>(i) * constants::tileSize +
+                             static_cast<float>(constants::squares - 1 - j) *
+                                     constants::tileSize +
                                  constants::marginSize);
           sprite.setScale(
               constants::tileSize / sprite.getLocalBounds().width,
@@ -125,21 +126,60 @@ void Board::draw(sf::RenderWindow &window) {
 
 Piece *Board::getPiece(int x, int y) const { return board[x][y]; }
 
+void Board::setPiece(int row, int col, Piece *piece) {
+  board[row][col] = piece;
+}
+
 // Move a piece from one position to another
 void Board::movePiece(int startX, int startY, int endX, int endY) {
-  if (startX < 0 || startX >= constants::squares ||
-      startY < 0 || startY >= constants::squares ||
-      endX < 0 || endX >= constants::squares ||
+  if (startX < 0 || startX >= constants::squares || startY < 0 ||
+      startY >= constants::squares || endX < 0 || endX >= constants::squares ||
       endY < 0 || endY >= constants::squares) {
-      std::cerr << "movePiece: Invalid coordinates!" << std::endl;
-      return;
+    std::cerr << "movePiece: Invalid coordinates!" << std::endl;
+    return;
   }
 
   if (!board[startX][startY]) {
-      std::cerr << "movePiece: No piece at (" << startX << ", " << startY << ")" << std::endl;
-      return; // Avoid null pointer access
+    std::cerr << "movePiece: No piece at (" << startX << ", " << startY << ")"
+              << std::endl;
+    return; // Avoid null pointer access
   }
 
   board[endX][endY] = board[startX][startY];
   board[startX][startY] = nullptr;
+}
+
+bool Board::isPathClear(int startX, int startY, int endX, int endY) const {
+  int dx = (endX - startX);
+  int dy = (endY - startY);
+  
+  int stepX = (dx == 0) ? 0 : (dx / std::abs(dx)); // Normalize step direction
+  int stepY = (dy == 0) ? 0 : (dy / std::abs(dy));
+
+  int x = startX + stepX;
+  int y = startY + stepY;
+
+  while (x != endX || y != endY) {
+      if (getPiece(x, y) != nullptr) { // Piece blocking the way
+          return false;
+      }
+      x += stepX;
+      y += stepY;
+  }
+
+  return true;
+}
+
+bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
+  for (int i = 0; i < 8; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      Piece* piece = getPiece(i, j);
+      if (piece && piece->isWhitePiece() != isWhite) { // Enemy piece
+        if (piece->isValidMove(i, j, x, y, *this)) {
+          return true; // This piece attacks (x, y)
+        }
+      }
+    }
+  }
+  return false;
 }

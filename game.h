@@ -22,10 +22,13 @@ private:
 
   Board board;
 
+  // Move Pieces on click
   tgui::Button::Ptr tiles[constants::squares][constants::squares];
   std::pair<int, int> selectedTile{-1, -1};
 
-  bool whiteTurn = true; // Track turn
+  // Track Turn
+  bool whiteTurn = true;
+  tgui::Label::Ptr turnLabel;
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,7 +39,15 @@ public:
   void run();
 
   void createButtons();
-  void handleButtonClick(int row, int col);
+  void selectOption(int row, int col);
+
+  void handleMove(int row, int col);
+  void switchTurn();
+
+  std::string notation(int row, int col);
+
+  void createTurnLabel();
+  void updateTurnLabel();
 };
 
 #endif

@@ -1,9 +1,12 @@
 #ifndef PIECE_H
 #define PIECE_H
 
+class Board;
+
 class Piece {
 protected:
   bool isWhite; // true = white, false = black
+  bool hasMoved = false;
 
 public:
   Piece(bool white) : isWhite(white) {}
@@ -13,7 +16,11 @@ public:
   virtual char getSymbol() const = 0;
   bool isWhitePiece() const { return isWhite; }
 
-  virtual bool isValidMove(int startX, int startY, int endX, int endY) = 0;
+  virtual bool isValidMove(int startX, int startY, int endX, int endY,
+                           const Board &board) = 0;
+
+  void markAsMoved() { hasMoved = true; }
+  bool hasMovedBefore() const { return hasMoved; }
 };
 
 class Pawn : public Piece {
@@ -23,7 +30,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'P'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 class Rook : public Piece {
@@ -33,7 +41,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'R'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 class Knight : public Piece {
@@ -43,7 +52,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'N'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 class Bishop : public Piece {
@@ -53,7 +63,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'B'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 class Queen : public Piece {
@@ -63,7 +74,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'Q'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 class King : public Piece {
@@ -73,7 +85,8 @@ public:
   int getType() override;
   char getSymbol() const override { return 'K'; }
 
-  bool isValidMove(int startX, int startY, int endX, int endY) override;
+  bool isValidMove(int startX, int startY, int endX, int endY,
+                   const Board &board) override;
 };
 
 #endif

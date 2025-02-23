@@ -19,6 +19,10 @@ inline constexpr int marginSize{40};
 inline constexpr int windowWidth{boardWidth + 2 * marginSize};
 inline constexpr int windowHeight{boardHeight + 2 * marginSize};
 
+inline constexpr int turnLabelX{300};
+inline constexpr int turnLabelY{3};
+inline constexpr int turnLabelSize{30};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 } // namespace constants
