@@ -1,8 +1,18 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+#include "piece.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
+
+struct Move {
+  int startX{};
+  int startY{};
+  int endX{};
+  int endY{};
+  Piece *pieceStart{};
+  Piece *pieceEnd{};
+};
 
 namespace constants {
 ////////////////////////////////////////////////////////////////////////////////////////////////////

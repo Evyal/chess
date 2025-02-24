@@ -73,19 +73,19 @@ void Game::selectOption(int row, int col) {
     selectedTile = {row, col};
   }
 
-  int startX{selectedTile.first};
-  int startY{selectedTile.second};
-  int endX{row};
-  int endY{col};
-  Piece *pieceStart = board.getPiece(startX, startY);
-  Piece *pieceEnd = board.getPiece(endX, endY);
+  Move move{selectedTile.first,
+            selectedTile.second,
+            row,
+            col,
+            board.getPiece(selectedTile.first, selectedTile.second),
+            board.getPiece(row, col)};
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   // OPTION 1
-  if (pieceStart && (pieceStart->isWhitePiece() == whiteTurn)) {
+  if (move.pieceStart && (move.pieceStart->isWhitePiece() == whiteTurn)) {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (pieceEnd && (pieceEnd->isWhitePiece() == whiteTurn)) {
+    if (move.pieceEnd && (move.pieceEnd->isWhitePiece() == whiteTurn)) {
       tiles[selectedTile.first][selectedTile.second]
           ->getRenderer()
           ->setBackgroundColor(sf::Color::White);
@@ -114,7 +114,7 @@ void Game::selectOption(int row, int col) {
 
       ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      if (pieceEnd && (pieceEnd->isWhitePiece() != whiteTurn)) {
+      if (move.pieceEnd && (move.pieceEnd->isWhitePiece() != whiteTurn)) {
 
         tiles[selectedTile.first][selectedTile.second]
             ->getRenderer()
@@ -127,10 +127,11 @@ void Game::selectOption(int row, int col) {
         tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(
             0.01f);
 
-        if (pieceStart->isValidMove(startX, startY, endX, endY, board)) {
-          board.setPiece(endX, endY, pieceStart);
-          board.setPiece(startX, startY, nullptr);
-          pieceStart->markAsMoved();
+        if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
+                                         move.endY, board)) {
+          board.setPiece(move.endX, move.endY, move.pieceStart);
+          board.setPiece(move.startX, move.startY, nullptr);
+          move.pieceStart->markAsMoved();
 
           switchTurn();
         }
@@ -138,25 +139,26 @@ void Game::selectOption(int row, int col) {
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (!pieceEnd) {
+        if (!move.pieceEnd) {
 
-          if (pieceStart->getType() == 6 ||
-              pieceStart->getType() == -6) { // King
-            if (abs(endX - startX) == 2) {
-              int rookStartX = (endX > startX) ? 7 : 0;
-              int rookEndX = (endX > startX) ? endX - 1 : endX + 1;
+          if (move.pieceStart->getType() == 6 ||
+              move.pieceStart->getType() == -6) { // King
+            if (abs(move.endX - move.startX) == 2) {
+              int rookStartX = (move.endX > move.startX) ? 7 : 0;
+              int rookEndX =
+                  (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
 
-              if (pieceStart->hasMovedBefore() == false &&
-                  pieceStart->hasMovedBefore() == false) {
+              if (move.pieceStart->hasMovedBefore() == false &&
+                  move.pieceStart->hasMovedBefore() == false) {
 
-                board.setPiece(endX, endY, pieceStart);
-                board.setPiece(startX, startY, nullptr);
+                board.setPiece(move.endX, move.endY, move.pieceStart);
+                board.setPiece(move.startX, move.startY, nullptr);
 
-                Piece *rook = board.getPiece(rookStartX, startY);
-                board.setPiece(rookEndX, startY, rook);
-                board.setPiece(rookStartX, startY, nullptr);
+                Piece *rook = board.getPiece(rookStartX, move.startY);
+                board.setPiece(rookEndX, move.startY, rook);
+                board.setPiece(rookStartX, move.startY, nullptr);
 
-                pieceStart->markAsMoved();
+                move.pieceStart->markAsMoved();
                 rook->markAsMoved();
 
                 tiles[selectedTile.first][selectedTile.second]
@@ -187,19 +189,13 @@ void Game::selectOption(int row, int col) {
           tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(
               0.01f);
 
-          if (pieceStart->isValidMove(startX, startY, endX, endY, board)) {
-            board.setPiece(endX, endY, pieceStart);
-            board.setPiece(startX, startY, nullptr);
-            pieceStart->markAsMoved();
+          if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
+                                           move.endY, board)) {
+            board.setPiece(move.endX, move.endY, move.pieceStart);
+            board.setPiece(move.startX, move.startY, nullptr);
+            move.pieceStart->markAsMoved();
 
             switchTurn();
-            std::ofstream outputFile("game_moves.txt",
-                                     std::ios::app); // Open in append mode
-            if (outputFile.is_open()) {
-              outputFile << notation(endX, endY) << '\n';
-            } else {
-              std::cout << "Error opening file for writing.\n";
-            }
           }
         }
   } else {
@@ -210,72 +206,34 @@ void Game::selectOption(int row, int col) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::handleMove(int row, int col) {
-  if (selectedTile.first == -1 || selectedTile.second == -1) {
+
+  Move move{selectedTile.first,
+            selectedTile.second,
+            row,
+            col,
+            board.getPiece(selectedTile.first, selectedTile.second),
+            board.getPiece(row, col)};
+
+  if (!move.pieceStart) {
     return;
   }
 
-  int startX = selectedTile.first;
-  int startY = selectedTile.second;
-  int endX = row;
-  int endY = col;
-
-  Piece *piece = board.getPiece(startX, startY);
-  if (!piece) {
-    return;
-  }
-
-  if (!piece->isValidMove(startX, startY, endX, endY, board)) {
+  if (!(move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
+                                     move.endY, board))) {
     std::cout << "Invalid move!\n";
     return;
   }
 
-  Piece *targetPiece = board.getPiece(endX, endY);
-  bool capture = targetPiece != nullptr;
+  Piece *targetPiece = board.getPiece(move.endX, move.endY);
+  bool capture = targetPiece != nullptr &&
+                 targetPiece->isWhitePiece() != move.pieceStart->isWhitePiece();
 
-  // Move the piece
-  board.setPiece(endX, endY, piece);
-  board.setPiece(startX, startY, nullptr);
+  board.setPiece(move.endX, move.endY, move.pieceStart);
+  board.setPiece(move.startX, move.startY, nullptr);
 
-  selectedTile = {-1, -1};
-  whiteTurn = !whiteTurn; // Switch turns
-  updateTurnLabel();      // Update the display
+  // NOTATION
 
-  // Convert to ASCII notation
-  char fileStart = 'a' + static_cast<char>(startY);
-  int rankStart = 8 - startX;
-  char fileEnd = 'a' + static_cast<char>(endY);
-  int rankEnd = 8 - endX;
-
-  std::string moveNotation;
-
-  // Pawn move
-  if (piece->getType() == 1 || piece->getType() == -1) { // Pawn
-    moveNotation = std::string(1, fileEnd) + std::to_string(rankEnd);
-    if (capture) {
-      moveNotation = std::string(1, fileStart) + "x" + moveNotation;
-    }
-  } else {
-    // Other piece move
-    char pieceChar = piece->getSymbol();
-    moveNotation = std::string(1, pieceChar) + std::string(1, fileEnd) +
-                   std::to_string(rankEnd);
-    if (capture) {
-      moveNotation = std::string(1, pieceChar) + "x" + std::string(1, fileEnd) +
-                     std::to_string(rankEnd);
-    }
-  }
-
-  // Output to file
-  std::ofstream outputFile("game_moves.txt",
-                           std::ios::app); // Open in append mode
-  if (outputFile.is_open()) {
-    outputFile << moveNotation << '\n';
-  } else {
-    std::cout << "Error opening file for writing.\n";
-  }
-
-  // Also print to console
-  std::cout << moveNotation << '\n';
+  switchTurn();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -288,9 +246,7 @@ void Game::switchTurn() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string Game::notation(int row, int col) {
-  return std::string(1, 'a' + static_cast<char>(row)) + std::to_string(1 + col);
-}
+std::string Game::notation(int row, int col) {}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
