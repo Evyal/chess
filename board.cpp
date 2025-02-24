@@ -1,5 +1,5 @@
 #include "board.h"
-#include "constants.hpp"
+#include "constants.h"
 #include "piece.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>

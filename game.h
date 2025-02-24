@@ -2,7 +2,9 @@
 #define GAME_H
 
 #include "board.h"
-#include "constants.hpp"
+#include "constants.h"
+#include <string>
+#include <vector>
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <TGUI/Backend/SFML-Graphics.hpp>
@@ -30,6 +32,11 @@ private:
   bool whiteTurn = true;
   tgui::Label::Ptr turnLabel;
 
+  // Track Moves
+
+  // Track Notation
+  std::vector<std::string> moveLog{};
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -49,6 +56,8 @@ public:
   void switchTurn();
 
   std::string notation(int row, int col);
+  void logMove(const Move &move, bool capture = false,
+                     bool castling = false);
 
   void createTurnLabel();
   void updateTurnLabel();

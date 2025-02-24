@@ -1,10 +1,11 @@
 #include "game.h"
 #include "board.h"
-#include "constants.hpp"
+#include "constants.h"
 #include "piece.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <fstream>
+#include <string>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -69,9 +70,13 @@ void Game::createButtons() {
 
 void Game::handleButtonClick(int row, int col) {
 
-  if (selectedTile.first == -1 && selectedTile.second == -1) {
-    highlightSelection(row, col, true, false);
-    selectedTile = {row, col};
+  Piece *piece = board.getPiece(row, col);
+
+  if ((selectedTile.first == -1) && (selectedTile.second == -1)) {
+    if (piece && (piece->isWhitePiece() == whiteTurn)) {
+      highlightSelection(row, col, true, false);
+      selectedTile = {row, col};
+    }
 
     return;
   }
@@ -97,27 +102,41 @@ void Game::handleButtonClick(int row, int col) {
 
       if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                        move.endY, board)) {
-        highlightSelection(row, col, false, true);
         capturePiece(move);
       }
+
+      // UNSELECT PIECE BY CLICKING AWAY
+      else {
+        highlightSelection(row, col, false, true);
+        selectedTile = {-1, -1};
+      }
+
     } else
 
       //////////////////////////////////////////////////////////////////////////////////////////////////////
 
       if (!move.pieceEnd) {
-
-        // if (handleCastling(move)) {
-        //   highlightSelection(row, col, false, true);
-        //   selectedTile = {-1, -1};
-        //   return;
-        // }
+        if (handleCastling(move)) {
+          return;
+        }
 
         if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                          move.endY, board)) {
-          highlightSelection(row, col, false, true);
           movePiece(move);
         }
-      } else {
+
+        // UNSELECT PIECE BY CLICKING AWAY
+        else {
+          highlightSelection(row, col, false, true);
+          selectedTile = {-1, -1};
+        }
+
+      } else
+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+      {
+        highlightSelection(row, col, false, true);
         selectedTile = {-1, -1};
       }
 }
@@ -152,47 +171,16 @@ void Game::highlightSelection(int row, int col, bool highlight,
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// void Game::handleMove(int row, int col) {
-
-//   Move move{selectedTile.first,
-//             selectedTile.second,
-//             row,
-//             col,
-//             board.getPiece(selectedTile.first, selectedTile.second),
-//             board.getPiece(row, col)};
-
-//   if (!move.pieceStart) {
-//     return;
-//   }
-
-//   if (!(move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
-//                                      move.endY, board))) {
-//     std::cout << "Invalid move!\n";
-//     return;
-//   }
-
-//   Piece *targetPiece = board.getPiece(move.endX, move.endY);
-//   bool capture = targetPiece != nullptr &&
-//                  targetPiece->isWhitePiece() !=
-//                  move.pieceStart->isWhitePiece();
-
-//   board.setPiece(move.endX, move.endY, move.pieceStart);
-//   board.setPiece(move.startX, move.startY, nullptr);
-
-//   // NOTATION
-
-//   switchTurn();
-// }
-
 // Moves a piece
 void Game::movePiece(const Move &move) {
   board.setPiece(move.endX, move.endY, move.pieceStart);
   board.setPiece(move.startX, move.startY, nullptr);
   move.pieceStart->markAsMoved();
+
+  highlightSelection(move.endX, move.endY, false, true);
   switchTurn();
-  // logMove(move);
+
+  logMove(move);
 }
 
 // Captures a piece
@@ -200,8 +188,11 @@ void Game::capturePiece(const Move &move) {
   board.setPiece(move.endX, move.endY, move.pieceStart);
   board.setPiece(move.startX, move.startY, nullptr);
   move.pieceStart->markAsMoved();
+
+  highlightSelection(move.endX, move.endY, false, true);
   switchTurn();
-  // logMove(move, true);
+
+  logMove(move, true);
 }
 
 // Handles castling logic
@@ -221,8 +212,10 @@ bool Game::handleCastling(const Move &move) {
       move.pieceStart->markAsMoved();
       rook->markAsMoved();
 
+      highlightSelection(move.endX, move.endY, false, true);
       switchTurn();
-      // logMove(move, false, true); // Log castling
+
+      logMove(move, false, true); // Log castling
       return true;
     }
   }
@@ -239,7 +232,42 @@ void Game::switchTurn() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string Game::notation(int row, int col) {}
+std::string Game::notation(int row, int col) {
+  return std::string(1, 'a' + static_cast<char>(row)) + std::to_string(col + 1);
+}
+
+void Game::logMove(const Move &move, bool capture, bool castling) {
+  std::ofstream outputFile("game_moves.txt", std::ios::app);
+  if (outputFile.is_open()) {
+    std::string moveStr{};
+
+    if ((move.pieceStart->getType() == 1) ||
+        (move.pieceStart->getType() == -1)) {
+      if (capture) {
+        moveStr = notation(move.startX, move.startY);
+      } else {
+        moveStr = notation(move.endX, move.endY);
+      }
+
+    } else if (castling) {
+      moveStr = std::string("O-O") + (move.endX > move.startX ? "" : "-O");
+    } else if (capture) {
+      moveStr = move.pieceStart->getSymbol() + static_cast<std::string>("x") +
+                notation(move.endX, move.endY);
+    } else {
+      moveStr = move.pieceStart->getSymbol() + notation(move.endX, move.endY);
+    }
+
+    if (!whiteTurn) {
+      outputFile << moveStr << ' ';
+    } else {
+      outputFile << moveStr << '\n';
+    }
+
+  } else {
+    std::cout << "Error opening file for writing.\n";
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
