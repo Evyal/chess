@@ -39,15 +39,15 @@ public:
   void run();
 
   void createButtons();
-  void selectOption(int row, int col);
-  void highlightSelection(int row, int col);
+  void handleButtonClick(int row, int col);
+  void highlightSelection(int row, int col, bool highlight, bool unhighlight);
 
   void handleMove(int row, int col);
-  void movePiece(const Move& move);
-  void capturePiece(const Move& move);
-  bool handleCastling(const Move& move);
+  void movePiece(const Move &move);
+  void capturePiece(const Move &move);
+  bool handleCastling(const Move &move);
   void switchTurn();
-  
+
   std::string notation(int row, int col);
 
   void createTurnLabel();

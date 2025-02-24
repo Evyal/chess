@@ -58,7 +58,7 @@ void Game::createButtons() {
       // Explicitly set a default color
       tiles[i][j]->getRenderer()->setBackgroundColor(sf::Color::White);
       tiles[i][j]->setInheritedOpacity(0.01f);
-      tiles[i][j]->onPress([this, i, j]() { selectOption(i, j); });
+      tiles[i][j]->onPress([this, i, j]() { handleButtonClick(i, j); });
 
       gui.add(tiles[i][j]);
     }
@@ -67,10 +67,13 @@ void Game::createButtons() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Game::selectOption(int row, int col) {
+void Game::handleButtonClick(int row, int col) {
 
   if (selectedTile.first == -1 && selectedTile.second == -1) {
+    highlightSelection(row, col, true, false);
     selectedTile = {row, col};
+
+    return;
   }
 
   Move move{selectedTile.first,
@@ -81,159 +84,149 @@ void Game::selectOption(int row, int col) {
             board.getPiece(row, col)};
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
-  // OPTION 1
-  if (move.pieceStart && (move.pieceStart->isWhitePiece() == whiteTurn)) {
+  if (move.pieceEnd && (move.pieceEnd->isWhitePiece() == whiteTurn)) {
+
+    highlightSelection(row, col, true, true);
+    selectedTile = {row, col};
+
+  } else
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    if (move.pieceEnd && (move.pieceEnd->isWhitePiece() == whiteTurn)) {
-      tiles[selectedTile.first][selectedTile.second]
-          ->getRenderer()
-          ->setBackgroundColor(sf::Color::White);
 
-      tiles[selectedTile.first][selectedTile.second]
-          ->getRenderer()
-          ->setBackgroundColorHover(sf::Color::White);
+    if (move.pieceEnd && (move.pieceEnd->isWhitePiece() != whiteTurn)) {
 
-      tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(
-          0.01f);
-
-      // Highlight the new selection
-      tiles[row][col]->setInheritedOpacity(0.1f);
-
-      if ((row + col) % 2 != 0) {
-        tiles[row][col]->getRenderer()->setBackgroundColorHover(
-            sf::Color::Yellow);
-        tiles[row][col]->getRenderer()->setBackgroundColor(sf::Color::Yellow);
-      } else {
-        tiles[row][col]->getRenderer()->setBackgroundColorHover(sf::Color::Red);
-        tiles[row][col]->getRenderer()->setBackgroundColor(sf::Color::Red);
+      if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
+                                       move.endY, board)) {
+        highlightSelection(row, col, false, true);
+        capturePiece(move);
       }
-
-      selectedTile = {row, col};
     } else
 
-      ////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-      if (move.pieceEnd && (move.pieceEnd->isWhitePiece() != whiteTurn)) {
+      if (!move.pieceEnd) {
 
-        tiles[selectedTile.first][selectedTile.second]
-            ->getRenderer()
-            ->setBackgroundColor(sf::Color::White);
-
-        tiles[selectedTile.first][selectedTile.second]
-            ->getRenderer()
-            ->setBackgroundColorHover(sf::Color::White);
-
-        tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(
-            0.01f);
+        // if (handleCastling(move)) {
+        //   highlightSelection(row, col, false, true);
+        //   selectedTile = {-1, -1};
+        //   return;
+        // }
 
         if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                          move.endY, board)) {
-          board.setPiece(move.endX, move.endY, move.pieceStart);
-          board.setPiece(move.startX, move.startY, nullptr);
-          move.pieceStart->markAsMoved();
-
-          switchTurn();
+          highlightSelection(row, col, false, true);
+          movePiece(move);
         }
-      } else
+      } else {
+        selectedTile = {-1, -1};
+      }
+}
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (!move.pieceEnd) {
+void Game::highlightSelection(int row, int col, bool highlight,
+                              bool unhighlight) {
+  if (unhighlight) {
+    tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(0.01f);
 
-          if (move.pieceStart->getType() == 6 ||
-              move.pieceStart->getType() == -6) { // King
-            if (abs(move.endX - move.startX) == 2) {
-              int rookStartX = (move.endX > move.startX) ? 7 : 0;
-              int rookEndX =
-                  (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
+    tiles[selectedTile.first][selectedTile.second]
+        ->getRenderer()
+        ->setBackgroundColor(sf::Color::White);
 
-              if (move.pieceStart->hasMovedBefore() == false &&
-                  move.pieceStart->hasMovedBefore() == false) {
+    tiles[selectedTile.first][selectedTile.second]
+        ->getRenderer()
+        ->setBackgroundColorHover(sf::Color::White);
+  }
 
-                board.setPiece(move.endX, move.endY, move.pieceStart);
-                board.setPiece(move.startX, move.startY, nullptr);
+  if (highlight) {
+    tiles[row][col]->setInheritedOpacity(0.1f);
 
-                Piece *rook = board.getPiece(rookStartX, move.startY);
-                board.setPiece(rookEndX, move.startY, rook);
-                board.setPiece(rookStartX, move.startY, nullptr);
-
-                move.pieceStart->markAsMoved();
-                rook->markAsMoved();
-
-                tiles[selectedTile.first][selectedTile.second]
-                    ->getRenderer()
-                    ->setBackgroundColor(sf::Color::White);
-
-                tiles[selectedTile.first][selectedTile.second]
-                    ->getRenderer()
-                    ->setBackgroundColorHover(sf::Color::White);
-
-                tiles[selectedTile.first][selectedTile.second]
-                    ->setInheritedOpacity(0.01f);
-
-                switchTurn();
-              }
-              return;
-            }
-          }
-
-          tiles[selectedTile.first][selectedTile.second]
-              ->getRenderer()
-              ->setBackgroundColor(sf::Color::White);
-
-          tiles[selectedTile.first][selectedTile.second]
-              ->getRenderer()
-              ->setBackgroundColorHover(sf::Color::White);
-
-          tiles[selectedTile.first][selectedTile.second]->setInheritedOpacity(
-              0.01f);
-
-          if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
-                                           move.endY, board)) {
-            board.setPiece(move.endX, move.endY, move.pieceStart);
-            board.setPiece(move.startX, move.startY, nullptr);
-            move.pieceStart->markAsMoved();
-
-            switchTurn();
-          }
-        }
-  } else {
-    selectedTile = {-1, -1};
+    if ((row + col) % 2 != 0) {
+      tiles[row][col]->getRenderer()->setBackgroundColorHover(
+          sf::Color::Yellow);
+      tiles[row][col]->getRenderer()->setBackgroundColor(sf::Color::Yellow);
+    } else {
+      tiles[row][col]->getRenderer()->setBackgroundColorHover(sf::Color::Red);
+      tiles[row][col]->getRenderer()->setBackgroundColor(sf::Color::Red);
+    }
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Game::handleMove(int row, int col) {
+// void Game::handleMove(int row, int col) {
 
-  Move move{selectedTile.first,
-            selectedTile.second,
-            row,
-            col,
-            board.getPiece(selectedTile.first, selectedTile.second),
-            board.getPiece(row, col)};
+//   Move move{selectedTile.first,
+//             selectedTile.second,
+//             row,
+//             col,
+//             board.getPiece(selectedTile.first, selectedTile.second),
+//             board.getPiece(row, col)};
 
-  if (!move.pieceStart) {
-    return;
-  }
+//   if (!move.pieceStart) {
+//     return;
+//   }
 
-  if (!(move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
-                                     move.endY, board))) {
-    std::cout << "Invalid move!\n";
-    return;
-  }
+//   if (!(move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
+//                                      move.endY, board))) {
+//     std::cout << "Invalid move!\n";
+//     return;
+//   }
 
-  Piece *targetPiece = board.getPiece(move.endX, move.endY);
-  bool capture = targetPiece != nullptr &&
-                 targetPiece->isWhitePiece() != move.pieceStart->isWhitePiece();
+//   Piece *targetPiece = board.getPiece(move.endX, move.endY);
+//   bool capture = targetPiece != nullptr &&
+//                  targetPiece->isWhitePiece() !=
+//                  move.pieceStart->isWhitePiece();
 
+//   board.setPiece(move.endX, move.endY, move.pieceStart);
+//   board.setPiece(move.startX, move.startY, nullptr);
+
+//   // NOTATION
+
+//   switchTurn();
+// }
+
+// Moves a piece
+void Game::movePiece(const Move &move) {
   board.setPiece(move.endX, move.endY, move.pieceStart);
   board.setPiece(move.startX, move.startY, nullptr);
-
-  // NOTATION
-
+  move.pieceStart->markAsMoved();
   switchTurn();
+  // logMove(move);
+}
+
+// Captures a piece
+void Game::capturePiece(const Move &move) {
+  board.setPiece(move.endX, move.endY, move.pieceStart);
+  board.setPiece(move.startX, move.startY, nullptr);
+  move.pieceStart->markAsMoved();
+  switchTurn();
+  // logMove(move, true);
+}
+
+// Handles castling logic
+bool Game::handleCastling(const Move &move) {
+  if (move.pieceStart->getType() == 6 ||
+      move.pieceStart->getType() == -6) { // King
+    if (abs(move.endX - move.startX) == 2) {
+      int rookStartX = (move.endX > move.startX) ? 7 : 0;
+      int rookEndX = (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
+      Piece *rook = board.getPiece(rookStartX, move.startY);
+
+      board.setPiece(move.endX, move.endY, move.pieceStart);
+      board.setPiece(move.startX, move.startY, nullptr);
+      board.setPiece(rookEndX, move.startY, rook);
+      board.setPiece(rookStartX, move.startY, nullptr);
+
+      move.pieceStart->markAsMoved();
+      rook->markAsMoved();
+
+      switchTurn();
+      // logMove(move, false, true); // Log castling
+      return true;
+    }
+  }
+  return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
