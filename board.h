@@ -35,17 +35,17 @@ public:
   // MOVING PIECES
 
   Piece *getPiece(int x, int y) const;
-  void setPiece(int row, int col, Piece* piece);
+  void setPiece(int row, int col, Piece *piece);
   void movePiece(int startX, int startY, int endX, int endY);
 
   bool isPathClear(int startX, int startY, int endX, int endY) const;
   bool isSquareUnderAttack(int x, int y, bool isWhite) const;
-
+  bool isControllingSquare(int row, int col, Piece *piece) const;
 
   // GRAPHICS
 
   void initializeBoard();
-  void draw(sf::RenderWindow &window);
+  void draw(sf::RenderWindow &window, bool rotated);
 };
 
 #endif

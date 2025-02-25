@@ -6,7 +6,7 @@ class Board;
 class Piece {
 protected:
   bool isWhite; // true = white, false = black
-  bool hasMoved = false;
+  bool hasMoved_ = false;
 
 public:
   Piece(bool white) : isWhite(white) {}
@@ -19,8 +19,8 @@ public:
   virtual bool isValidMove(int startX, int startY, int endX, int endY,
                            const Board &board) = 0;
 
-  void markAsMoved() { hasMoved = true; }
-  bool hasMovedBefore() const { return hasMoved; }
+  void markAsMoved(bool hasMoved) { hasMoved_ = hasMoved; }
+  bool hasMovedBefore() const { return hasMoved_; }
 };
 
 class Pawn : public Piece {

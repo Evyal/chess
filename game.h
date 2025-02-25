@@ -3,8 +3,7 @@
 
 #include "board.h"
 #include "constants.h"
-#include <string>
-#include <vector>
+#include "move.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <TGUI/Backend/SFML-Graphics.hpp>
@@ -13,6 +12,8 @@
 #include <TGUI/Widgets/Button.hpp>
 #include <TGUI/Widgets/EditBoxSlider.hpp>
 #include <TGUI/Widgets/Label.hpp>
+#include <string>
+#include <vector>
 class Game {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,9 +34,14 @@ private:
   tgui::Label::Ptr turnLabel;
 
   // Track Moves
+  std::vector<Move> moveLog{};
+  size_t moveNumber{0};
 
   // Track Notation
-  std::vector<std::string> moveLog{};
+  std::vector<std::string> notationLog{};
+
+  // Rotate Board
+  bool isRotated{false};
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,18 +52,22 @@ public:
   void run();
 
   void createButtons();
+  void rotateBoard();
   void handleButtonClick(int row, int col);
-  void highlightSelection(int row, int col, bool highlight, bool unhighlight);
+  void highlightSelection(int row, int col, bool highlight);
 
-  void handleMove(int row, int col);
-  void movePiece(const Move &move);
-  void capturePiece(const Move &move);
-  bool handleCastling(const Move &move);
   void switchTurn();
 
+  void handleMove(const Move &move);
+  void logMove(const Move &move);
+
   std::string notation(int row, int col);
-  void logMove(const Move &move, bool capture = false,
-                     bool castling = false);
+  void logNotation(const Move &move);
+  void fileNotation(const Move &move);
+  void printMoveParameters();
+
+  void undoMove();
+  void redoMove();
 
   void createTurnLabel();
   void updateTurnLabel();

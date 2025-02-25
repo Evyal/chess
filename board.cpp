@@ -6,7 +6,6 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <iostream>
 
-// PROVA PROVA
 Board::Board() {
   loadTextures();
   loadPieceTextures();
@@ -86,7 +85,9 @@ void Board::initializeBoard() {
   board[3][7] = new Queen(false);
 }
 
-void Board::draw(sf::RenderWindow &window) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Board::draw(sf::RenderWindow &window, bool rotated) {
 
   backgroundSprite.setPosition(0, 0);
   backgroundSprite.setScale(
@@ -100,38 +101,70 @@ void Board::draw(sf::RenderWindow &window) {
       constants::boardHeight / boardSprite.getLocalBounds().height);
   window.draw(boardSprite);
 
-  for (int i{0}; i < constants::squares; i++) {
-    for (int j{0}; j < constants::squares; j++) {
-      if (board[i][j] != nullptr) {
+  if (rotated) {
+    for (int i{0}; i < constants::squares; i++) {
+      for (int j{0}; j < constants::squares; j++) {
+        if (board[i][j] != nullptr) {
 
-        int pieceType =
-            board[i][j]->getType(); // Assuming you have a getType() function
+          int pieceType =
+              board[i][j]->getType(); // Assuming you have a getType() function
 
-        if (pieceSprites.find(pieceType) != pieceSprites.end()) {
-          sf::Sprite &sprite = pieceSprites[pieceType];
-          sprite.setPosition(static_cast<float>(i) * constants::tileSize +
-                                 constants::marginSize,
-                             static_cast<float>(constants::squares - 1 - j) *
-                                     constants::tileSize +
-                                 constants::marginSize);
-          sprite.setScale(
-              constants::tileSize / sprite.getLocalBounds().width,
-              constants::tileSize /
-                  sprite.getLocalBounds().height); // Adjust scaling if needed
-          window.draw(sprite);
+          if (pieceSprites.find(pieceType) != pieceSprites.end()) {
+            sf::Sprite &sprite = pieceSprites[pieceType];
+            sprite.setPosition(static_cast<float>(constants::squares - 1 - i) *
+                                       constants::tileSize +
+                                   constants::marginSize,
+                               static_cast<float>(j) * constants::tileSize +
+                                   constants::marginSize);
+            sprite.setScale(
+                constants::tileSize / sprite.getLocalBounds().width,
+                constants::tileSize /
+                    sprite.getLocalBounds().height); // Adjust scaling if needed
+            window.draw(sprite);
+          }
+        }
+      }
+    }
+  } else {
+    for (int i{0}; i < constants::squares; i++) {
+      for (int j{0}; j < constants::squares; j++) {
+        if (board[i][j] != nullptr) {
+
+          int pieceType =
+              board[i][j]->getType(); // Assuming you have a getType() function
+
+          if (pieceSprites.find(pieceType) != pieceSprites.end()) {
+            sf::Sprite &sprite = pieceSprites[pieceType];
+            sprite.setPosition(static_cast<float>(i) * constants::tileSize +
+                                   constants::marginSize,
+                               static_cast<float>(constants::squares - 1 - j) *
+                                       constants::tileSize +
+                                   constants::marginSize);
+            sprite.setScale(
+                constants::tileSize / sprite.getLocalBounds().width,
+                constants::tileSize /
+                    sprite.getLocalBounds().height); // Adjust scaling if needed
+            window.draw(sprite);
+          }
         }
       }
     }
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Piece *Board::getPiece(int x, int y) const { return board[x][y]; }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Board::setPiece(int row, int col, Piece *piece) {
   board[row][col] = piece;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // Move a piece from one position to another
+
 void Board::movePiece(int startX, int startY, int endX, int endY) {
   if (startX < 0 || startX >= constants::squares || startY < 0 ||
       startY >= constants::squares || endX < 0 || endX >= constants::squares ||
@@ -150,10 +183,12 @@ void Board::movePiece(int startX, int startY, int endX, int endY) {
   board[startX][startY] = nullptr;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Board::isPathClear(int startX, int startY, int endX, int endY) const {
   int dx = (endX - startX);
   int dy = (endY - startY);
-  
+
   int stepX = (dx == 0) ? 0 : (dx / std::abs(dx)); // Normalize step direction
   int stepY = (dy == 0) ? 0 : (dy / std::abs(dy));
 
@@ -161,20 +196,22 @@ bool Board::isPathClear(int startX, int startY, int endX, int endY) const {
   int y = startY + stepY;
 
   while (x != endX || y != endY) {
-      if (getPiece(x, y) != nullptr) { // Piece blocking the way
-          return false;
-      }
-      x += stepX;
-      y += stepY;
+    if (getPiece(x, y) != nullptr) { // Piece blocking the way
+      return false;
+    }
+    x += stepX;
+    y += stepY;
   }
 
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
-      Piece* piece = getPiece(i, j);
+      Piece *piece = getPiece(i, j);
       if (piece && piece->isWhitePiece() != isWhite) { // Enemy piece
         if (piece->isValidMove(i, j, x, y, *this)) {
           return true; // This piece attacks (x, y)
@@ -184,3 +221,7 @@ bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
   }
   return false;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool Board::isControllingSquare(int row, int col, Piece *piece) const {}
