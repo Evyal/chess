@@ -37,11 +37,11 @@ private:
   std::vector<Move> moveLog{};
   size_t moveNumber{0};
 
-  // Track Notation
-  std::vector<std::string> notationLog{};
-
   // Rotate Board
   bool isRotated{false};
+
+  // Result
+  int result{-2};
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,10 +61,9 @@ public:
   void handleMove(const Move &move);
   void logMove(const Move &move);
 
-  std::string notation(int row, int col);
-  void logNotation(const Move &move);
-  void fileNotation(const Move &move);
-  void printMoveParameters();
+  std::string notationPNG(const Move &move);
+  void notationFEN();
+  void fileNotation();
 
   void undoMove();
   void redoMove();

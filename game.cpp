@@ -48,6 +48,14 @@ void Game::run() {
           isRotated = !isRotated;
           rotateBoard();
         }
+
+        if (event.key.code == sf::Keyboard::P) {
+          fileNotation();
+        }
+
+        if (event.key.code == sf::Keyboard::F) {
+          notationFEN();
+        }
       }
 
       if (event.type == sf::Event::Closed) {
@@ -89,7 +97,8 @@ void Game::rotateBoard() {
     for (int i{0}; i < constants::squares; i++) {
       for (int j{0}; j < constants::squares; j++) {
         tiles[i][j]->setPosition(
-            -(i + 1) * constants::tileSize + constants::boardWidth + constants::marginSize,
+            -(i + 1) * constants::tileSize + constants::boardWidth +
+                constants::marginSize,
             (j)*constants::tileSize + constants::marginSize);
         tiles[i][j]->setSize(constants::tileSize, constants::tileSize);
       }
@@ -326,7 +335,8 @@ void Game::handleMove(const Move &move) {
     assert(moveLog.size() == moveNumber);
 
   } else if (!(areMovesEqual(move, moveLog.at(moveNumber - 1)))) {
-    moveLog.erase(moveLog.begin() + moveNumber - 1, moveLog.end());
+    moveLog.erase(moveLog.begin() + static_cast<long>(moveNumber) - 1,
+                  moveLog.end());
     moveLog.emplace_back(move);
 
     assert(moveLog.size() == moveNumber);
@@ -424,10 +434,6 @@ void Game::undoMove() {
   switchTurn();
 
   moveNumber--;
-  // moveLog.pop_back();
-  // notationLog.erase(notationLog.end() - 1);
-
-  // assert(moveLog.size() == notationLog.size());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,67 +452,150 @@ void Game::redoMove() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string Game::notation(int row, int col) {
-  return std::string(1, 'a' + static_cast<char>(row)) + std::to_string(col + 1);
+std::string Game::notationPNG(const Move &move) {
+  if (move.pieceStart->getType() == 1 || move.pieceStart->getType() == -1) {
+    if (move.isCapture) {
+      return std::string(1, 'a' + static_cast<char>(move.startX)) + "x" +
+             std::string(1, 'a' + static_cast<char>(move.endX)) +
+             std::to_string(move.endY + 1);
+    } else {
+      return std::string(1, 'a' + static_cast<char>(move.endX)) +
+             std::to_string(move.endY + 1);
+    }
+  }
+
+  if (move.isMoving) {
+    return (move.pieceStart->getSymbolPNG()) +
+           std::string(1, 'a' + static_cast<char>(move.endX)) +
+           std::to_string(move.endY + 1);
+  }
+
+  if (move.isShortCastle) {
+    return "O-O";
+  }
+  if (move.isLongCastle) {
+    return "O-O-O";
+  }
+  if (move.isCapture) {
+    return (move.pieceStart->getSymbolPNG()) + std::string(1, 'x') +
+           std::string(1, 'a' + static_cast<char>(move.endX)) +
+           std::to_string(move.endY + 1);
+  }
+  return "Error!";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// void Game::logNotation(const Move &move) {
-//   std::string moveStr{};
+void Game::notationFEN() {
 
-//   if ((move.pieceStart->getType() == 1) || (move.pieceStart->getType() ==
-//   -1)) {
-//     if (move.isCapture) {
-//       moveStr = notation(move.startX, move.startY);
-//     } else {
-//       moveStr = notation(move.endX, move.endY);
-//     }
+  std::ofstream outputFile("positionFEN.txt", std::ios::app);
 
-//   } else if (move.isShortCastle) {
-//     moveStr = "O-O";
-//   } else if (move.isLongCastle) {
-//     moveStr = "O-O-O";
-//   } else if (move.isCapture) {
-//     moveStr = std::string(1, move.pieceStart->getSymbol()) + 'x' +
-//     notation(move.endX, move.endY);
+  if (outputFile.is_open()) {
 
-//   } else {
-//     moveStr = move.pieceStart->getSymbol() + notation(move.endX, move.endY);
-//   }
-//   notationLog.emplace_back(move);
-// }
+    std::string str{};
+    bool canWhiteCastleK{true};
+    bool canWhiteCastleQ{true};
+    bool canBlackCastleK{true};
+    bool canBlackCastleQ{true};
+
+    for (int j{0}; j < 8; j++) {
+      int a{0}; // Track empty squares
+
+      for (int i{0}; i < 8; i++) {
+
+        if (!board.getPiece(i, j)) {
+          a++; // Increment 'a' when the square is empty
+        } else {
+          if (a > 0) {
+            str +=
+                std::to_string(a); // Add the number of empty squares to 'str'
+            a = 0;                 // Reset 'a' after adding it
+          }
+
+          str +=
+              (board.getPiece(i, j)->getSymbolFEN()); // Add the piece's symbol
+
+          // Handle castling conditions based on piece types and movement
+          if (board.getPiece(i, j)->getType() == 6) {
+            if (board.getPiece(i, j)->hasMovedBefore()) {
+              canWhiteCastleK = canWhiteCastleQ = false;
+            }
+          }
+
+          if (board.getPiece(i, j)->getType() == -6) {
+            if (board.getPiece(i, j)->hasMovedBefore()) {
+              canBlackCastleK = canBlackCastleQ = false;
+            }
+          }
+
+          if (board.getPiece(i, j)->getType() == 2 ||
+              board.getPiece(i, j)->getType() == -2) {
+            if (board.getPiece(i, j)->hasMovedBefore()) {
+              if (board.getPiece(i, j)->getStartingPosition().first <
+                  board.getPiece(i, j)->getStartingPosition().first) {
+                canWhiteCastleQ = (board.getPiece(i, j)->getType() == 2)
+                                      ? false
+                                      : canWhiteCastleQ;
+                canBlackCastleQ = (board.getPiece(i, j)->getType() == -2)
+                                      ? false
+                                      : canBlackCastleQ;
+              } else {
+                canWhiteCastleK = (board.getPiece(i, j)->getType() == 2)
+                                      ? false
+                                      : canWhiteCastleK;
+                canBlackCastleK = (board.getPiece(i, j)->getType() == -2)
+                                      ? false
+                                      : canBlackCastleK;
+              }
+            }
+          }
+        }
+      }
+
+      if (a > 0) {
+        str += std::to_string(
+            a); // Add remaining empty squares if any at the end of the row
+      }
+
+      str += "/"; // Add slash at the end of each row
+    }
+
+    // Add turn color (white or black)
+    str += " ";
+    str += (moveNumber % 2 == 0) ? "w" : "b";
+    str += " ";
+
+    // Add castling rights
+    if (canWhiteCastleK)
+      str += "K";
+    if (canWhiteCastleQ)
+      str += "Q";
+    if (canBlackCastleK)
+      str += "k";
+    if (canBlackCastleQ)
+      str += "q";
+
+    outputFile << str << '\n';
+
+  } else {
+    std::cout << "Error opening file for writing.\n";
+  }
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Game::fileNotation(const Move &move) {
-  std::ofstream outputFile("game_moves.txt", std::ios::app);
+void Game::fileNotation() {
+  std::ofstream outputFile("movesPNG.txt", std::ios::app);
   if (outputFile.is_open()) {
-    std::string moveStr{};
 
-    if ((move.pieceStart->getType() == 1) ||
-        (move.pieceStart->getType() == -1)) {
-      if (move.isCapture) {
-        moveStr = notation(move.startX, move.startY);
+    int a{2};
+    for (const auto &i : moveLog) {
+      if (a % 2 == 0) {
+        outputFile << a / 2 << ". " << notationPNG(i) << " ";
       } else {
-        moveStr = notation(move.endX, move.endY);
+        outputFile << notationPNG(i) << '\n';
       }
-
-    } else if (move.isShortCastle) {
-      moveStr = "O-O";
-    } else if (move.isLongCastle) {
-      moveStr = "O-O-O";
-    } else if (move.isCapture) {
-      moveStr = move.pieceStart->getSymbol() + static_cast<std::string>("x") +
-                notation(move.endX, move.endY);
-    } else {
-      moveStr = move.pieceStart->getSymbol() + notation(move.endX, move.endY);
-    }
-
-    if (!whiteTurn) {
-      outputFile << moveStr << ' ';
-    } else {
-      outputFile << moveStr << '\n';
+      a++;
     }
 
   } else {
@@ -537,22 +626,3 @@ void Game::updateTurnLabel() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Game::printMoveParameters() {
-  if (moveLog.empty()) {
-    std::cout << "No moves to undo." << std::endl;
-    return;
-  }
-
-  const Move &move = moveLog.back();
-
-  if (move.pieceEnd) {
-    std::cout << move.startX << " " << move.startY << " " << move.endX << " "
-              << move.endY << " " << move.pieceStart->getSymbol() << " "
-              << move.pieceEnd->getSymbol() << '\n';
-  } else {
-    std::cout << move.startX << " " << move.startY << " " << move.endX << " "
-              << move.endY << " " << move.pieceStart->getSymbol() << " "
-              << "Empty Square" << '\n';
-  }
-}

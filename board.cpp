@@ -5,6 +5,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <iostream>
+#include <utility>
 
 Board::Board() {
   loadTextures();
@@ -59,10 +60,10 @@ void Board::initializeBoard() {
   }
 
   // Place Rooks
-  board[0][0] = new Rook(true);
-  board[7][0] = new Rook(true);
-  board[0][7] = new Rook(false);
-  board[7][7] = new Rook(false);
+  board[0][0] = new Rook(true, {0, 0});
+  board[7][0] = new Rook(true, {7, 0});
+  board[0][7] = new Rook(false, {0, 7});
+  board[7][7] = new Rook(false, {7, 7});
 
   // Place Knights
   board[1][0] = new Knight(true);
@@ -224,4 +225,4 @@ bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Board::isControllingSquare(int row, int col, Piece *piece) const {}
+// bool Board::isControllingSquare(int row, int col, Piece *piece) const {}

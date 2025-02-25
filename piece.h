@@ -1,34 +1,42 @@
 #ifndef PIECE_H
 #define PIECE_H
 
-class Board;
+#include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <utility>
 
+class Board;
 class Piece {
 protected:
   bool isWhite; // true = white, false = black
   bool hasMoved_ = false;
+  std::pair<int, int> startingPos_{-1, -1};
 
 public:
-  Piece(bool white) : isWhite(white) {}
+  Piece(bool white);
+  Piece(bool white, std::pair<int, int> startingPos);
   virtual ~Piece() = default;
 
-  virtual int getType() = 0;
-  virtual char getSymbol() const = 0;
   bool isWhitePiece() const { return isWhite; }
+  virtual int getType() = 0;
+  virtual char getSymbolPNG() const = 0;
+  virtual char getSymbolFEN() const = 0;
+
+  void markAsMoved(bool hasMoved);
+  bool hasMovedBefore() const;
+  std::pair<int, int> getStartingPosition();
 
   virtual bool isValidMove(int startX, int startY, int endX, int endY,
                            const Board &board) = 0;
-
-  void markAsMoved(bool hasMoved) { hasMoved_ = hasMoved; }
-  bool hasMovedBefore() const { return hasMoved_; }
 };
 
 class Pawn : public Piece {
 public:
-  Pawn(bool white) : Piece(white) {}
+  Pawn(bool white);
 
   int getType() override;
-  char getSymbol() const override { return 'P'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
@@ -36,10 +44,12 @@ public:
 
 class Rook : public Piece {
 public:
-  Rook(bool white) : Piece(white) {}
+  Rook(bool white);
+  Rook(bool white, std::pair<int, int> startingPos);
 
   int getType() override;
-  char getSymbol() const override { return 'R'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
@@ -47,10 +57,11 @@ public:
 
 class Knight : public Piece {
 public:
-  Knight(bool white) : Piece(white) {}
+  Knight(bool white);
 
   int getType() override;
-  char getSymbol() const override { return 'N'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
@@ -58,10 +69,11 @@ public:
 
 class Bishop : public Piece {
 public:
-  Bishop(bool white) : Piece(white) {}
+  Bishop(bool white);
 
   int getType() override;
-  char getSymbol() const override { return 'B'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
@@ -69,10 +81,11 @@ public:
 
 class Queen : public Piece {
 public:
-  Queen(bool white) : Piece(white) {}
+  Queen(bool white);
 
   int getType() override;
-  char getSymbol() const override { return 'Q'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
@@ -80,10 +93,11 @@ public:
 
 class King : public Piece {
 public:
-  King(bool white) : Piece(white) {}
+  King(bool white);
 
   int getType() override;
-  char getSymbol() const override { return 'K'; }
+  char getSymbolPNG() const override;
+  virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
