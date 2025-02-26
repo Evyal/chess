@@ -1,5 +1,6 @@
 #include "piece.h"
 #include "board.h"
+#include "constants.h"
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 
@@ -14,7 +15,7 @@ Piece::Piece(bool white, std::pair<int, int> startingPos)
 
 void Piece::markAsMoved(bool hasMoved) { hasMoved_ = hasMoved; }
 bool Piece::hasMovedBefore() const { return hasMoved_; }
-std::pair<int, int> Piece::getStartingPosition() {return startingPos_;}
+std::pair<int, int> Piece::getStartingPosition() { return startingPos_; }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,6 +243,9 @@ char Queen::getSymbolFEN() const {
 
 King::King(bool white) : Piece(white) {}
 
+King::King(bool white, std::pair<int, int> startingPos)
+    : Piece(white, startingPos) {}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool King::isValidMove(int startX, int startY, int endX, int endY,
@@ -254,41 +258,43 @@ bool King::isValidMove(int startX, int startY, int endX, int endY,
     return true;
   }
 
-  // Castling logic
-  if (!hasMovedBefore() &&
-      startY == endY) { // King moves horizontally for castling
-    if (endX == startX + 2 ||
-        endX == startX - 2) { // Castling happens two squares left or right
-      int rookX =
-          (endX > startX) ? 7 : 0; // Determine which rook (right or left)
-      Piece *rook = board.getPiece(rookX, startY);
+  return false;
+}
 
-      // Check if a rook is present and hasn't moved
-      if (rook && (rook->getType() == 2 || rook->getType() == -2) &&
-          !rook->hasMovedBefore()) {
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Ensure no pieces are between king and rook
-        int step = (endX > startX) ? 1 : -1;
-        for (int x = startX + step; x != rookX; x += step) {
-          if (board.getPiece(x, startY)) {
-            return false; // Pieces are blocking
-          }
-        }
+bool King::canCastle(const Board &board, bool kingSide) {
+  if (hasMovedBefore())
+    return false;
 
-        // Ensure the king is not in check, does not move through check, and
-        // does not end in check
-        for (int x = startX; x != endX + step; x += step) {
-          if (board.isSquareUnderAttack(x, startY, isWhitePiece())) {
-            return false; // King moves through or into check
-          }
-        }
+  int KingX = startingPos_.first;
+  int KingY = startingPos_.second;
+  int kingDest =
+      kingSide ? constants::shortCastleKingX : constants::longCastleKingX;
 
-        return true; // Castling is allowed
-      }
-    }
+  Rook *eligibleRook =
+      board.getRookForCastling(KingX, KingY, kingSide, isWhitePiece());
+  if (!eligibleRook)
+    return false;
+
+  int rookStart = eligibleRook->getStartingPosition().first;
+
+  int step = (kingDest > KingX) ? 1 : -1;
+  for (int x = KingX + step; x != kingDest + step; x += step) {
+    if (x == KingX || x == rookStart)
+      continue;
+    if (board.getPiece(x, KingY))
+      return false;
   }
 
-  return false;
+  for (int x = KingX; x != kingDest + step; x += step) {
+    if (x == rookStart)
+      continue;
+    if (board.isSquareUnderAttack(x, KingY, isWhitePiece()))
+      return false;
+  }
+
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

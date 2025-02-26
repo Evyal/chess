@@ -60,6 +60,7 @@ public:
 
   void handleMove(const Move &move);
   void logMove(const Move &move);
+  void handleCastling(bool kingSide);
 
   std::string notationPNG(const Move &move);
   void notationFEN();

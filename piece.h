@@ -43,6 +43,7 @@ public:
 };
 
 class Rook : public Piece {
+
 public:
   Rook(bool white);
   Rook(bool white, std::pair<int, int> startingPos);
@@ -94,6 +95,7 @@ public:
 class King : public Piece {
 public:
   King(bool white);
+  King(bool white, std::pair<int, int> startingPos);
 
   int getType() override;
   char getSymbolPNG() const override;
@@ -101,6 +103,7 @@ public:
 
   bool isValidMove(int startX, int startY, int endX, int endY,
                    const Board &board) override;
+  bool canCastle(const Board &board, bool kingSide);
 };
 
 #endif

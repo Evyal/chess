@@ -36,6 +36,22 @@ void Game::run() {
       gui.handleEvent(event); // Make sure TGUI processes the event
 
       if (event.type == sf::Event::KeyPressed) {
+
+        { // ADD CONTROL
+          if (event.key.code == sf::Keyboard::R) {
+            isRotated = !isRotated;
+            rotateBoard();
+          }
+
+          if (event.key.code == sf::Keyboard::P) {
+            fileNotation();
+          }
+
+          if (event.key.code == sf::Keyboard::F) {
+            notationFEN();
+          }
+        }
+
         if (event.key.code == sf::Keyboard::Left) {
           undoMove();
         }
@@ -44,17 +60,15 @@ void Game::run() {
           redoMove();
         }
 
-        if (event.key.code == sf::Keyboard::R) {
-          isRotated = !isRotated;
-          rotateBoard();
+        if (event.key.code == sf::Keyboard::S) {
+          handleCastling(true);
+
+          // std::cout << board.getPiece(7, 0)->getStartingPosition().first
+          //           << '\n';
         }
 
-        if (event.key.code == sf::Keyboard::P) {
-          fileNotation();
-        }
-
-        if (event.key.code == sf::Keyboard::F) {
-          notationFEN();
+        if (event.key.code == sf::Keyboard::L) {
+          handleCastling(false);
         }
       }
 
@@ -132,9 +146,9 @@ void Game::handleButtonClick(int row, int col) {
 
   Move move{selectedTile.first,
             selectedTile.second,
+            board.getPiece(selectedTile.first, selectedTile.second),
             row,
             col,
-            board.getPiece(selectedTile.first, selectedTile.second),
             board.getPiece(row, col)};
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,24 +200,6 @@ void Game::handleButtonClick(int row, int col) {
     if (!move.pieceEnd)
 
     {
-      if (move.pieceStart->getType() == 6 || move.pieceStart->getType() == -6) {
-
-        if ((move.endX - move.startX) == 2) {
-          move.isShortCastle = true;
-          handleMove(move);
-          selectedTile = {-1, -1};
-
-          return;
-        }
-
-        if ((move.endX - move.startX) == -2) {
-          move.isLongCastle = true;
-          handleMove(move);
-          selectedTile = {-1, -1};
-
-          return;
-        }
-      }
 
       if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                        move.endY, board)) {
@@ -289,14 +285,16 @@ void Game::handleMove(const Move &move) {
 
   else if (move.isShortCastle) {
 
-    int rookStartX = (move.endX > move.startX) ? 7 : 0;
-    int rookEndX = (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
-    Piece *rook = board.getPiece(rookStartX, move.startY);
+    Rook *rook = dynamic_cast<Rook *>(move.pieceEnd);
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
     board.setPiece(move.startX, move.startY, nullptr);
-    board.setPiece(rookEndX, move.startY, rook);
-    board.setPiece(rookStartX, move.startY, nullptr);
+    board.setPiece(rook->getStartingPosition().first,
+                   rook->getStartingPosition().second, nullptr);
+
+    int row = move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+
+    board.setPiece(constants::shortCastleKingX, row, move.pieceStart);
+    board.setPiece(constants::shortCastleRookX, row, rook);
 
     move.pieceStart->markAsMoved(true);
     rook->markAsMoved(true);
@@ -305,14 +303,16 @@ void Game::handleMove(const Move &move) {
 
   else if (move.isLongCastle) {
 
-    int rookStartX = (move.endX > move.startX) ? 7 : 0;
-    int rookEndX = (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
-    Piece *rook = board.getPiece(rookStartX, move.startY);
+    Rook *rook = dynamic_cast<Rook *>(move.pieceEnd);
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
     board.setPiece(move.startX, move.startY, nullptr);
-    board.setPiece(rookEndX, move.startY, rook);
-    board.setPiece(rookStartX, move.startY, nullptr);
+    board.setPiece(rook->getStartingPosition().first,
+                   rook->getStartingPosition().second, nullptr);
+
+    int row = move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+
+    board.setPiece(constants::longCastleKingX, row, move.pieceStart);
+    board.setPiece(constants::longCastleRookX, row, rook);
 
     move.pieceStart->markAsMoved(true);
     rook->markAsMoved(true);
@@ -357,6 +357,42 @@ void Game::logMove(const Move &move) { moveLog.emplace_back(move); }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void Game::handleCastling(bool kingSide) {
+  if ((selectedTile.first == -1) && (selectedTile.second == -1)) {
+  } else {
+    Move move{selectedTile.first, selectedTile.second,
+              board.getPiece(selectedTile.first, selectedTile.second)};
+
+    if (move.pieceStart &&
+        (move.pieceStart->getType() == 6 || move.pieceStart->getType() == -6)) {
+      King *king = dynamic_cast<King *>(move.pieceStart);
+
+      if (king->canCastle(board, kingSide)) {
+        if (kingSide) {
+          move.isShortCastle = true;
+        } else {
+          move.isLongCastle = true;
+        }
+
+        Rook *eligibleRook =
+            board.getRookForCastling(move.startX, move.startY, kingSide,
+                                     move.pieceStart->isWhitePiece());
+
+        move.endX = eligibleRook->getStartingPosition().first;
+        move.endY = eligibleRook->getStartingPosition().second;
+        move.pieceEnd = eligibleRook;
+
+        handleMove(move);
+        selectedTile = {-1, -1};
+      } else {
+        std::cout << "Cannot Castle! \n";
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Game::undoMove() {
 
   if (moveLog.size() == 0) {
@@ -395,14 +431,17 @@ void Game::undoMove() {
 
   else if (move.isShortCastle) {
 
-    int rookStartX = (move.endX > move.startX) ? 7 : 0;
-    int rookEndX = (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
-    Piece *rook = board.getPiece(rookStartX, move.startY);
+    Rook *rook = dynamic_cast<Rook *>(move.pieceEnd);
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
-    board.setPiece(move.startX, move.startY, nullptr);
-    board.setPiece(rookEndX, move.startY, rook);
-    board.setPiece(rookStartX, move.startY, nullptr);
+    int row{};
+    move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+
+    board.setPiece(constants::shortCastleKingX, row, nullptr);
+    board.setPiece(constants::shortCastleRookX, row, nullptr);
+
+    board.setPiece(move.startX, move.startY, move.pieceStart);
+    board.setPiece(rook->getStartingPosition().first,
+                   rook->getStartingPosition().second, rook);
 
     move.pieceStart->markAsMoved(false);
     rook->markAsMoved(false);
@@ -411,14 +450,17 @@ void Game::undoMove() {
 
   else if (move.isLongCastle) {
 
-    int rookStartX = (move.endX > move.startX) ? 7 : 0;
-    int rookEndX = (move.endX > move.startX) ? move.endX - 1 : move.endX + 1;
-    Piece *rook = board.getPiece(rookStartX, move.startY);
+    Rook *rook = dynamic_cast<Rook *>(move.pieceEnd);
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
-    board.setPiece(move.startX, move.startY, nullptr);
-    board.setPiece(rookEndX, move.startY, rook);
-    board.setPiece(rookStartX, move.startY, nullptr);
+    int row{};
+    move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+
+    board.setPiece(constants::longCastleKingX, row, nullptr);
+    board.setPiece(constants::longCastleRookX, row, nullptr);
+
+    board.setPiece(move.startX, move.startY, move.pieceStart);
+    board.setPiece(rook->getStartingPosition().first,
+                   rook->getStartingPosition().second, rook);
 
     move.pieceStart->markAsMoved(false);
     rook->markAsMoved(false);

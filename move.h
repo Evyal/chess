@@ -4,11 +4,12 @@
 #include "piece.h"
 
 struct Move {
-  int startX{};
-  int startY{};
-  int endX{};
-  int endY{};
+  int startX{-1};
+  int startY{-1};
   Piece *pieceStart{};
+
+  int endX{-1};
+  int endY{-1};
   Piece *pieceEnd{};
 
   bool isMoving{false};

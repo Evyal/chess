@@ -23,6 +23,12 @@ inline constexpr int turnLabelX{300};
 inline constexpr int turnLabelY{3};
 inline constexpr int turnLabelSize{30};
 
+inline constexpr int shortCastleKingX{6};
+inline constexpr int shortCastleRookX{5};
+inline constexpr int longCastleKingX{2};
+inline constexpr int longCastleRookX{3};
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 } // namespace constants
