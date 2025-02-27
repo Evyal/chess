@@ -23,6 +23,9 @@ inline constexpr int windowPosX{480};
 inline constexpr int windowPosY{80};
 inline constexpr int frameRate{50};
 
+inline constexpr int popupPromotionWidth{tileSize * 4};
+inline constexpr int popupPromotionHeight{tileSize};
+
 inline constexpr int turnLabelX{300};
 inline constexpr int turnLabelY{3};
 inline constexpr int turnLabelSize{30};

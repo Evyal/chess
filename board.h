@@ -3,7 +3,6 @@
 
 #include "constants.h"
 #include "piece.h"
-#include <map>
 
 class Board {
 private:

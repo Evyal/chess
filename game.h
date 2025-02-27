@@ -63,7 +63,7 @@ public:
   void handleMove(const Move &move);
   void logMove(const Move &move);
   void handleCastling(bool kingSide);
-  void promotePawn(Move move, int newPieceType);
+  void promotePawn(Move &move);
 
   std::string notationPNG(const Move &move);
   void notationFEN();
@@ -73,8 +73,6 @@ public:
   void redoMove();
 
   // GRAPHICS
-
-  void showPromotionPopup(Move move);
 
   void createTurnLabel();
   void updateTurnLabel();

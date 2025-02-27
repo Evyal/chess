@@ -65,9 +65,6 @@ void Game::run() {
 
         if (event.key.code == sf::Keyboard::S) {
           handleCastling(true);
-
-          // std::cout << board.getPiece(7, 0)->getStartingPosition().first
-          //           << '\n';
         }
 
         if (event.key.code == sf::Keyboard::L) {
@@ -184,6 +181,20 @@ void Game::handleButtonClick(int row, int col) {
       if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                        move.endY, board)) {
         move.isCapture = true;
+
+        if (move.pieceStart->getType() == 1 ||
+            move.pieceStart->getType() == -1) { // Pawn
+          int promotionRank = move.pieceStart->isWhitePiece() ? 7 : 0;
+          if (move.endY == promotionRank) {
+            promotePawn(move);
+            move.isPromotion = true;
+            handleMove(move);
+            selectedTile = {-1, -1};
+
+            return;
+          }
+        }
+
         handleMove(move);
         selectedTile = {-1, -1};
 
@@ -209,6 +220,20 @@ void Game::handleButtonClick(int row, int col) {
       if (move.pieceStart->isValidMove(move.startX, move.startY, move.endX,
                                        move.endY, board)) {
         move.isMoving = true;
+
+        if (move.pieceStart->getType() == 1 ||
+            move.pieceStart->getType() == -1) { // Pawn
+          int promotionRank = move.pieceStart->isWhitePiece() ? 7 : 0;
+          if (move.endY == promotionRank) {
+            promotePawn(move);
+            move.isPromotion = true;
+            handleMove(move);
+            selectedTile = {-1, -1};
+
+            return;
+          }
+        }
+
         handleMove(move);
         selectedTile = {-1, -1};
 
@@ -274,17 +299,29 @@ void Game::switchTurn() {
 void Game::handleMove(const Move &move) {
   if (move.isMoving) {
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
     board.setPiece(move.startX, move.startY, nullptr);
+    board.setPiece(move.endX, move.endY, move.pieceStart);
+
     move.pieceStart->markAsMoved(true);
+
+    if (move.isPromotion) {
+      board.setPiece(move.endX, move.endY, nullptr);
+      board.setPiece(move.endX, move.endY, move.promotionPiece);
+    }
 
   }
 
   else if (move.isCapture) {
 
-    board.setPiece(move.endX, move.endY, move.pieceStart);
     board.setPiece(move.startX, move.startY, nullptr);
+    board.setPiece(move.endX, move.endY, move.pieceStart);
+
     move.pieceStart->markAsMoved(true);
+
+    if (move.isPromotion) {
+      board.setPiece(move.endX, move.endY, nullptr);
+      board.setPiece(move.endX, move.endY, move.promotionPiece);
+    }
 
   }
 
@@ -327,14 +364,6 @@ void Game::handleMove(const Move &move) {
   else {
     std::cout << "Error!" << '\n';
     return;
-  }
-
-  if (move.pieceStart->getType() == 1 ||
-      move.pieceStart->getType() == -1) { // Pawn
-    int promotionRank = move.pieceStart->isWhitePiece() ? 7 : 0;
-    if (move.endY == promotionRank) {
-      showPromotionPopup(move);
-    }
   }
 
   highlightSelection(move.endX, move.endY, false);
@@ -406,28 +435,37 @@ void Game::handleCastling(bool kingSide) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Game::promotePawn(Move move, int newPieceType) {
-  bool isWhite = move.pieceStart->isWhitePiece();
-  Piece *promotedPiece = nullptr;
+void Game::promotePawn(Move &move) {
+  // Determine the pawn color (assuming your Move or board state indicates
+  // this).
+  bool isWhite = board.getPiece(move.startX, move.startY)->isWhitePiece();
 
-  switch (newPieceType) {
-  case 5:
-    promotedPiece = new Queen(isWhite);
+  // Open the promotion popup and get the chosen piece type.
+  int chosenPieceType = boardGraphics.showPromotionPopup(isWhite);
+
+  // Now, replace the pawn at the promotion square with the new piece.
+  // (Assuming you have a function or constructor for Queen, Rook, Bishop,
+  // Knight) For instance:
+
+  switch (std::abs(chosenPieceType)) {
+
+  case 5: // Queen
+    move.promotionPiece = new Queen(isWhite);
     break;
-  case 4:
-    promotedPiece = new Rook(isWhite);
+  case 2: // Rook
+    move.promotionPiece = new Rook(isWhite);
     break;
-  case 3:
-    promotedPiece = new Bishop(isWhite);
+  case 4: // Bishop
+    move.promotionPiece = new Bishop(isWhite);
     break;
-  case 2:
-    promotedPiece = new Knight(isWhite);
+  case 3: // Knight
+    move.promotionPiece = new Knight(isWhite);
     break;
   }
 
-  if (promotedPiece) {
-    board.setPiece(move.endX, move.endY, promotedPiece);
-  }
+  move.promotionPiece->markAsMoved(true);
+
+  // (Optionally update the board graphics if needed.)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -706,33 +744,6 @@ void Game::updateTurnLabel() {
     turnLabel->setText("Black to move");
     turnLabel->getRenderer()->setTextColor(sf::Color::Black);
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Game::showPromotionPopup(Move move) {
-  auto promotionWindow = tgui::ChildWindow::create("Choose Promotion");
-  promotionWindow->setSize(300, 150);
-  promotionWindow->setPosition("50%", "50%");
-  promotionWindow->setOrigin(0.5f, 0.5f);
-  promotionWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
-
-  std::vector<std::pair<std::string, int>> options = {
-      {"Queen", 5}, {"Rook", 4}, {"Bishop", 3}, {"Knight", 2}};
-
-  for (size_t i = 0; i < options.size(); i++) {
-    auto button = tgui::Button::create(options[i].first);
-    button->setPosition(10, 10 + (i * 35));
-    button->setSize(120, 30);
-    button->onPress(
-        [this, move, pieceType = options[i].second, promotionWindow]() {
-          promotePawn(move, pieceType);
-          gui.remove(promotionWindow);
-        });
-    promotionWindow->add(button);
-  }
-
-  gui.add(promotionWindow);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
