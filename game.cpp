@@ -486,15 +486,9 @@ void Game::undoMove() {
 
   if (move.isMoving) {
 
-    if (move.pieceEnd) {
-      board.setPiece(move.endX, move.endY, move.pieceEnd);
-      board.setPiece(move.startX, move.startY, move.pieceStart);
-      move.pieceStart->markAsMoved(!move.isFirstTimeMoving);
-    } else {
-      board.setPiece(move.endX, move.endY, nullptr);
-      board.setPiece(move.startX, move.startY, move.pieceStart);
-      move.pieceStart->markAsMoved(!move.isFirstTimeMoving);
-    }
+    board.setPiece(move.endX, move.endY, nullptr);
+    board.setPiece(move.startX, move.startY, move.pieceStart);
+    move.pieceStart->markAsMoved(!move.isFirstTimeMoving);
 
   }
 
