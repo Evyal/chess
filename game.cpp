@@ -1,6 +1,7 @@
 #include "game.h"
 #include "board.h"
 #include "constants.h"
+#include "graphics.h"
 #include "move.h"
 #include "piece.h"
 #include <SFML/Graphics.hpp>
@@ -15,13 +16,15 @@
 Game::Game()
     : window(sf::VideoMode(constants::windowWidth, constants::windowHeight),
              "Chess Game"),
-      gui(window) {}
+      boardGraphics(board) {
+  gui.setTarget(window);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::setup() {
-  window.setPosition({480, 80});
-  window.setFramerateLimit(50);
+  window.setPosition({constants::windowPosX, constants::windowPosY});
+  window.setFramerateLimit(constants::frameRate);
 
   createButtons();
   createTurnLabel();
@@ -78,7 +81,9 @@ void Game::run() {
     }
 
     window.clear();
-    board.draw(window, isRotated);
+
+    // Draw the board using the graphics object.
+    boardGraphics.draw(window, isRotated);
     gui.draw(); // Draw GUI elements
     window.display();
   }
@@ -291,7 +296,7 @@ void Game::handleMove(const Move &move) {
     board.setPiece(rook->getStartingPosition().first,
                    rook->getStartingPosition().second, nullptr);
 
-    int row = move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+    int row = move.pieceStart->isWhitePiece() ? (row = 0) : (row = 7);
 
     board.setPiece(constants::shortCastleKingX, row, move.pieceStart);
     board.setPiece(constants::shortCastleRookX, row, rook);
@@ -309,7 +314,7 @@ void Game::handleMove(const Move &move) {
     board.setPiece(rook->getStartingPosition().first,
                    rook->getStartingPosition().second, nullptr);
 
-    int row = move.pieceStart->isWhitePiece() ? row = 0 : row = 7;
+    int row = move.pieceStart->isWhitePiece() ? (row = 0) : (row = 7);
 
     board.setPiece(constants::longCastleKingX, row, move.pieceStart);
     board.setPiece(constants::longCastleRookX, row, rook);
@@ -322,6 +327,14 @@ void Game::handleMove(const Move &move) {
   else {
     std::cout << "Error!" << '\n';
     return;
+  }
+
+  if (move.pieceStart->getType() == 1 ||
+      move.pieceStart->getType() == -1) { // Pawn
+    int promotionRank = move.pieceStart->isWhitePiece() ? 7 : 0;
+    if (move.endY == promotionRank) {
+      showPromotionPopup(move);
+    }
   }
 
   highlightSelection(move.endX, move.endY, false);
@@ -388,6 +401,32 @@ void Game::handleCastling(bool kingSide) {
         std::cout << "Cannot Castle! \n";
       }
     }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Game::promotePawn(Move move, int newPieceType) {
+  bool isWhite = move.pieceStart->isWhitePiece();
+  Piece *promotedPiece = nullptr;
+
+  switch (newPieceType) {
+  case 5:
+    promotedPiece = new Queen(isWhite);
+    break;
+  case 4:
+    promotedPiece = new Rook(isWhite);
+    break;
+  case 3:
+    promotedPiece = new Bishop(isWhite);
+    break;
+  case 2:
+    promotedPiece = new Knight(isWhite);
+    break;
+  }
+
+  if (promotedPiece) {
+    board.setPiece(move.endX, move.endY, promotedPiece);
   }
 }
 
@@ -667,6 +706,33 @@ void Game::updateTurnLabel() {
     turnLabel->setText("Black to move");
     turnLabel->getRenderer()->setTextColor(sf::Color::Black);
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Game::showPromotionPopup(Move move) {
+  auto promotionWindow = tgui::ChildWindow::create("Choose Promotion");
+  promotionWindow->setSize(300, 150);
+  promotionWindow->setPosition("50%", "50%");
+  promotionWindow->setOrigin(0.5f, 0.5f);
+  promotionWindow->setTitleButtons(tgui::ChildWindow::TitleButton::None);
+
+  std::vector<std::pair<std::string, int>> options = {
+      {"Queen", 5}, {"Rook", 4}, {"Bishop", 3}, {"Knight", 2}};
+
+  for (size_t i = 0; i < options.size(); i++) {
+    auto button = tgui::Button::create(options[i].first);
+    button->setPosition(10, 10 + (i * 35));
+    button->setSize(120, 30);
+    button->onPress(
+        [this, move, pieceType = options[i].second, promotionWindow]() {
+          promotePawn(move, pieceType);
+          gui.remove(promotionWindow);
+        });
+    promotionWindow->add(button);
+  }
+
+  gui.add(promotionWindow);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

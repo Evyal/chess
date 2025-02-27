@@ -34,5 +34,14 @@ bool areMovesEqual(const Move &move1, const Move &move2) {
   if (move1.isLongCastle != move2.isLongCastle) {
     return false;
   }
- return true;
+  if (move1.isPromotion != move2.isPromotion) {
+    return false;
+  }
+  if (move1.isPromotion != move2.isPromotion) {
+    return false;
+  }
+  if (move1.promotionPiece != move2.promotionPiece) {
+    return false;
+  }
+  return true;
 }

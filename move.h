@@ -17,6 +17,9 @@ struct Move {
   bool isShortCastle{false};
   bool isLongCastle{false};
   bool isFirstTimeMoving{true};
+  bool isPromotion{false};
+
+  Piece *promotionPiece{};
 };
 
 bool areMovesEqual(const Move &move1, const Move &move2);

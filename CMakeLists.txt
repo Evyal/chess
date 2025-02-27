@@ -23,6 +23,6 @@ string(APPEND CMAKE_CXX_FLAGS
 find_package(SFML 2.5.1 COMPONENTS graphics REQUIRED)
 find_package(TGUI 1 REQUIRED)
 
-add_executable(chess game.cpp random.cpp piece.cpp board.cpp move.cpp main.cpp)
+add_executable(chess game.cpp random.cpp graphics.cpp piece.cpp board.cpp move.cpp main.cpp)
 
 target_link_libraries(chess sfml-graphics TGUI::TGUI)

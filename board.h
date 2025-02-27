@@ -3,38 +3,19 @@
 
 #include "constants.h"
 #include "piece.h"
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Sprite.hpp>
-#include <SFML/Graphics/Texture.hpp>
 #include <map>
-#include <utility>
 
 class Board {
 private:
+  // Logical board: each square holds a pointer to a Piece (or nullptr)
   Piece *board[constants::squares][constants::squares] = {{}, {}, {}, {},
                                                           {}, {}, {}, {}};
 
-  // BOARD TEXTURES
-  sf::Texture backgroundTexture;
-  sf::Texture boardTexture;
-  sf::Sprite backgroundSprite;
-  sf::Sprite boardSprite;
-
-  // PIECE TEXTURES
-  std::map<int, sf::Texture> pieceTextures;
-  std::map<int, sf::Sprite> pieceSprites;
-
-  void loadTextures();
-  void loadPieceTextures(); // New function to load piece images
-
 public:
-  // CONSTRUCTORS and DESTRUCTORS
-
   Board();
   ~Board();
 
-  // MOVING PIECES
-
+  // Game logic functions
   Piece *getPiece(int x, int y) const;
   void setPiece(int col, int row, Piece *piece);
   void movePiece(int startX, int startY, int endX, int endY);
@@ -43,13 +24,11 @@ public:
   bool isSquareUnderAttack(int x, int y, bool isWhite) const;
   bool isControllingSquare(int row, int col, Piece *piece) const;
   Rook *getRookForCastling(int KingX, int kingY, bool kingSide,
-                                   bool kingColor) const;
+                           bool kingColor) const;
 
-  // GRAPHICS
-
+  // Board setup functions (logic)
   void initializeBoard();
   void setup960();
-  void draw(sf::RenderWindow &window, bool rotated);
 };
 
-#endif
+#endif // BOARD_H

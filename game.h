@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "constants.h"
+#include "graphics.h"
 #include "move.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
@@ -24,6 +25,7 @@ private:
   tgui::Gui gui;
 
   Board board;
+  BoardGraphics boardGraphics; // New graphics handler
 
   // Move Pieces on click
   tgui::Button::Ptr tiles[constants::squares][constants::squares];
@@ -61,6 +63,7 @@ public:
   void handleMove(const Move &move);
   void logMove(const Move &move);
   void handleCastling(bool kingSide);
+  void promotePawn(Move move, int newPieceType);
 
   std::string notationPNG(const Move &move);
   void notationFEN();
@@ -68,6 +71,10 @@ public:
 
   void undoMove();
   void redoMove();
+
+  // GRAPHICS
+
+  void showPromotionPopup(Move move);
 
   void createTurnLabel();
   void updateTurnLabel();
