@@ -1,5 +1,8 @@
 #include "move.h"
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// CHECK every ATTRIBUTE to see if two MOVES ARE EQUAL
+
 bool areMovesEqual(const Move &move1, const Move &move2) {
   if (move1.startX != move2.startX) {
     return false;

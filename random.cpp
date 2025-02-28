@@ -1,5 +1,4 @@
 #include "random.h"
-#include "constants.h"
 #include <SFML/System/Vector2.hpp>
 #include <chrono>
 #include <cmath>
