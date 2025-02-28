@@ -2,11 +2,15 @@
 #include "constants.h"
 #include <iostream>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 BoardGraphics::BoardGraphics(Board &board) : board_(board) {
   loadTextures();
   loadPieceTextures();
-  initPopupBackground(); // Initialize the popup background here.
+  initializePopupBackground();
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BoardGraphics::loadTextures() {
   if (!backgroundTexture.loadFromFile("../bases/background.png")) {
@@ -20,6 +24,8 @@ void BoardGraphics::loadTextures() {
   backgroundSprite.setTexture(backgroundTexture);
   boardSprite.setTexture(boardTexture);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BoardGraphics::loadPieceTextures() {
   std::map<int, std::string> pieceFiles = {
@@ -38,13 +44,14 @@ void BoardGraphics::loadPieceTextures() {
   }
 }
 
-void BoardGraphics::initPopupBackground() {
-  // Set the texture for the popup background using the already loaded
-  // backgroundTexture.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void BoardGraphics::initializePopupBackground() {
   popupBackground.setTexture(backgroundTexture);
-  // You can set any default properties here if needed.
-  // The texture rectangle and scaling will be updated in showPromotionPopup().
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BoardGraphics::draw(sf::RenderWindow &window, bool rotated) {
   // Draw background
@@ -105,8 +112,11 @@ void BoardGraphics::draw(sf::RenderWindow &window, bool rotated) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int BoardGraphics::showPromotionPopup(bool isWhite) {
-  // Define the promotion options.
+  // Defining the promotion options.
   // For white: Queen (5), Rook (2), Bishop (4), Knight (3)
   // For black: Queen (-5), Rook (-2), Bishop (-4), Knight (-3)
   int promoOptions[4];
@@ -134,22 +144,21 @@ int BoardGraphics::showPromotionPopup(bool isWhite) {
 
   popupBackground.setTextureRect(sf::IntRect(
       0, 0, constants::popupPromotionWidth, constants::popupPromotionHeight));
-  // You can scale the background if needed (here it fits exactly).
   popupBackground.setScale(1.0f, 1.0f);
 
   // Prepare promotion option sprites.
   std::vector<sf::Sprite> promoSprites;
   for (int i = 0; i < 4; i++) {
-    // Copy the sprite from our pieceSprites map.
     sf::Sprite sprite = pieceSprites[promoOptions[i]];
-    // Scale sprite to exactly fit a tile.
+
     float scaleX =
         static_cast<float>(constants::tileSize) / sprite.getLocalBounds().width;
     float scaleY = static_cast<float>(constants::tileSize) /
                    sprite.getLocalBounds().height;
+
     sprite.setScale(scaleX, scaleY);
-    // Position each sprite in its slot.
     sprite.setPosition(static_cast<float>(i * constants::tileSize), 0);
+
     promoSprites.push_back(sprite);
   }
 
@@ -159,6 +168,7 @@ int BoardGraphics::showPromotionPopup(bool isWhite) {
     while (popupWindow.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
         popupWindow.close();
+
         // If closed without selection, default to Queen.
         return isWhite ? 5 : -5;
       }
@@ -176,8 +186,10 @@ int BoardGraphics::showPromotionPopup(bool isWhite) {
     }
 
     popupWindow.clear();
+
     // Draw the textured background.
     popupWindow.draw(popupBackground);
+
     // Then draw the promotion option sprites.
     for (const auto &sprite : promoSprites) {
       popupWindow.draw(sprite);
@@ -188,3 +200,6 @@ int BoardGraphics::showPromotionPopup(bool isWhite) {
   // Fallback: if the loop exits unexpectedly, return Queen.
   return isWhite ? 5 : -5;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////

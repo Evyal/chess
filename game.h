@@ -24,8 +24,8 @@ private:
   sf::RenderWindow window;
   tgui::Gui gui;
 
-  Board board;
-  BoardGraphics boardGraphics; // New graphics handler
+  Board board;                 // Logic handler
+  BoardGraphics boardGraphics; // Ggraphics handler
 
   // Move Pieces on click
   tgui::Button::Ptr tiles[constants::squares][constants::squares];
@@ -54,28 +54,40 @@ public:
   void run();
 
   void createButtons();
-  void rotateBoard();
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+
   void handleButtonClick(int row, int col);
   void highlightSelection(int row, int col, bool highlight);
-
   void switchTurn();
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // MOVES
 
   void handleMove(const Move &move);
   void logMove(const Move &move);
   void handleCastling(bool kingSide);
   void promotePawn(Move &move);
 
-  std::string notationPNG(const Move &move);
-  void notationFEN();
-  void fileNotation();
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // GO BACK with MOVES
 
   void undoMove();
   void redoMove();
 
-  // GRAPHICS
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // NOTATION
+
+  std::string notationPNG(const Move &move);
+  void notationFEN();
+  void fileNotation();
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // DISPLAY TURN
 
   void createTurnLabel();
   void updateTurnLabel();
+  void rotateBoard();
 };
 
 #endif

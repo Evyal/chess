@@ -2,20 +2,22 @@
 #include "constants.h"
 #include "piece.h"
 #include "random.h"
-#include <iostream>
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Board::Board() {
-  // You can choose either the standard initial setup...
   // initializeBoard();
 
-  // ... or the chess960 variant:
   setup960();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 Board::~Board() {
-  // Free dynamically allocated memory for pieces
   for (int i = 0; i < constants::squares; i++) {
     for (int j = 0; j < constants::squares; j++) {
       delete board[i][j];
@@ -23,11 +25,14 @@ Board::~Board() {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Board::initializeBoard() {
   // Place Pawns
   for (int i = 0; i < 8; i++) {
-    board[i][1] = new Pawn(true);   // White Pawn
-    board[i][6] = new Pawn(false);  // Black Pawn
+    board[i][1] = new Pawn(true);  // White Pawn
+    board[i][6] = new Pawn(false); // Black Pawn
   }
 
   // Place Rooks
@@ -57,11 +62,13 @@ void Board::initializeBoard() {
   board[3][7] = new Queen(false);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Board::setup960() {
   // Place Pawns for both sides
   for (int i = 0; i < 8; i++) {
-    board[i][1] = new Pawn(true);   // White Pawn
-    board[i][6] = new Pawn(false);  // Black Pawn
+    board[i][1] = new Pawn(true);  // White Pawn
+    board[i][6] = new Pawn(false); // Black Pawn
   }
 
   int kingX = randomInt(1, 6);
@@ -116,6 +123,9 @@ void Board::setup960() {
   setPiece(QueenX, 7, new Queen(false));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void Board::movePiece(int startX, int startY, int endX, int endY) {
   if (startX < 0 || startX >= constants::squares || startY < 0 ||
       startY >= constants::squares || endX < 0 || endX >= constants::squares ||
@@ -133,6 +143,19 @@ void Board::movePiece(int startX, int startY, int endX, int endY) {
   board[endX][endY] = board[startX][startY];
   board[startX][startY] = nullptr;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Piece *Board::getPiece(int x, int y) const { return board[x][y]; }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Board::setPiece(int col, int row, Piece *piece) {
+  board[col][row] = piece;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bool Board::isPathClear(int startX, int startY, int endX, int endY) const {
   int dx = (endX - startX);
@@ -152,6 +175,8 @@ bool Board::isPathClear(int startX, int startY, int endX, int endY) const {
   return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
@@ -166,23 +191,25 @@ bool Board::isSquareUnderAttack(int x, int y, bool isWhite) const {
   return false;
 }
 
-Rook* Board::getRookForCastling(int KingX, int KingY, bool kingSide, bool kingColor) const {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Rook *Board::getRookForCastling(int KingX, int KingY, bool kingSide,
+                                bool kingColor) const {
   for (int x = 0; x < 8; x++) {
-    Piece* p = getPiece(x, KingY);
+    Piece *p = getPiece(x, KingY);
     if (p && p->getType() == (kingColor ? 2 : -2) && !p->hasMovedBefore()) {
       if (kingSide && x > KingX)
-        return dynamic_cast<Rook*>(p);
+        return dynamic_cast<Rook *>(p);
       if (!kingSide && x < KingX)
-        return dynamic_cast<Rook*>(p);
+        return dynamic_cast<Rook *>(p);
     }
   }
   return nullptr;
 }
 
-Piece* Board::getPiece(int x, int y) const { 
-  return board[x][y]; 
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Board::setPiece(int col, int row, Piece *piece) { 
-  board[col][row] = piece; 
-}
+// bool Board::isControllingSquare(int row, int col, Piece *piece) const {}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////

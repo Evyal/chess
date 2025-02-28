@@ -12,11 +12,12 @@
 #include <string>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Game::Game()
     : window(sf::VideoMode(constants::windowWidth, constants::windowHeight),
              "Chess Game"),
-      boardGraphics(board) {
+      boardGraphics{board} {
   gui.setTarget(window);
 }
 
@@ -87,6 +88,7 @@ void Game::run() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::createButtons() {
   for (int i{0}; i < constants::squares; i++) {
@@ -106,32 +108,9 @@ void Game::createButtons() {
       gui.add(tiles[i][j]);
     }
   }
-} ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void Game::rotateBoard() {
-  if (isRotated) {
-    for (int i{0}; i < constants::squares; i++) {
-      for (int j{0}; j < constants::squares; j++) {
-        tiles[i][j]->setPosition(
-            -(i + 1) * constants::tileSize + constants::boardWidth +
-                constants::marginSize,
-            (j)*constants::tileSize + constants::marginSize);
-        tiles[i][j]->setSize(constants::tileSize, constants::tileSize);
-      }
-    }
-  } else {
-    for (int i{0}; i < constants::squares; i++) {
-      for (int j{0}; j < constants::squares; j++) {
-        tiles[i][j]->setPosition(
-            (i)*constants::tileSize + constants::marginSize,
-            -(j + 1) * constants::tileSize + constants::boardHeight +
-                constants::marginSize);
-        tiles[i][j]->setSize(constants::tileSize, constants::tileSize);
-      }
-    }
-  }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::handleButtonClick(int row, int col) {
@@ -295,6 +274,7 @@ void Game::switchTurn() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::handleMove(const Move &move) {
   if (move.isMoving) {
@@ -389,8 +369,6 @@ void Game::handleMove(const Move &move) {
   } else {
     whiteTurn = false;
   }
-
-  // logNotation(move);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,6 +446,7 @@ void Game::promotePawn(Move &move) {
   // (Optionally update the board graphics if needed.)
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::undoMove() {
@@ -565,6 +544,7 @@ void Game::redoMove() {
   selectedTile = {-1, -1};
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 std::string Game::notationPNG(const Move &move) {
@@ -719,6 +699,7 @@ void Game::fileNotation() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::createTurnLabel() {
   turnLabel = tgui::Label::create();
@@ -737,6 +718,32 @@ void Game::updateTurnLabel() {
   } else {
     turnLabel->setText("Black to move");
     turnLabel->getRenderer()->setTextColor(sf::Color::Black);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void Game::rotateBoard() {
+  if (isRotated) {
+    for (int i{0}; i < constants::squares; i++) {
+      for (int j{0}; j < constants::squares; j++) {
+        tiles[i][j]->setPosition(
+            -(i + 1) * constants::tileSize + constants::boardWidth +
+                constants::marginSize,
+            (j)*constants::tileSize + constants::marginSize);
+        tiles[i][j]->setSize(constants::tileSize, constants::tileSize);
+      }
+    }
+  } else {
+    for (int i{0}; i < constants::squares; i++) {
+      for (int j{0}; j < constants::squares; j++) {
+        tiles[i][j]->setPosition(
+            (i)*constants::tileSize + constants::marginSize,
+            -(j + 1) * constants::tileSize + constants::boardHeight +
+                constants::marginSize);
+        tiles[i][j]->setSize(constants::tileSize, constants::tileSize);
+      }
+    }
   }
 }
 
