@@ -27,7 +27,7 @@ public:
   std::pair<int, int> getStartingPosition();
 
   virtual int getType() = 0;
-  virtual char getSymbolPNG() const = 0;
+  virtual char getSymbolPGN() const = 0;
   virtual char getSymbolFEN() const = 0;
 
   // SETTERS
@@ -45,7 +45,7 @@ public:
   Pawn(bool white);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
@@ -62,7 +62,7 @@ public:
   Rook(bool white, std::pair<int, int> startingPos);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
@@ -76,7 +76,7 @@ public:
   Knight(bool white);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
@@ -90,7 +90,7 @@ public:
   Bishop(bool white);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
@@ -105,7 +105,7 @@ public:
   Queen(bool white);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   bool isValidMove(int startX, int startY, int endX, int endY,
@@ -121,7 +121,7 @@ public:
   King(bool white, std::pair<int, int> startingPos);
 
   int getType() override;
-  char getSymbolPNG() const override;
+  char getSymbolPGN() const override;
   virtual char getSymbolFEN() const override;
 
   // VALID MOVES, additional function to check CASTLING

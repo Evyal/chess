@@ -547,7 +547,7 @@ void Game::redoMove() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string Game::notationPNG(const Move &move) {
+std::string Game::notationPGN(const Move &move) {
   if (move.pieceStart->getType() == 1 || move.pieceStart->getType() == -1) {
     if (move.isCapture) {
       return std::string(1, 'a' + static_cast<char>(move.startX)) + "x" +
@@ -560,7 +560,7 @@ std::string Game::notationPNG(const Move &move) {
   }
 
   if (move.isMoving) {
-    return (move.pieceStart->getSymbolPNG()) +
+    return (move.pieceStart->getSymbolPGN()) +
            std::string(1, 'a' + static_cast<char>(move.endX)) +
            std::to_string(move.endY + 1);
   }
@@ -572,7 +572,7 @@ std::string Game::notationPNG(const Move &move) {
     return "O-O-O";
   }
   if (move.isCapture) {
-    return (move.pieceStart->getSymbolPNG()) + std::string(1, 'x') +
+    return (move.pieceStart->getSymbolPGN()) + std::string(1, 'x') +
            std::string(1, 'a' + static_cast<char>(move.endX)) +
            std::to_string(move.endY + 1);
   }
@@ -593,7 +593,7 @@ void Game::notationFEN() {
     bool canBlackCastleK{true};
     bool canBlackCastleQ{true};
 
-    for (int j{0}; j < 8; j++) {
+    for (int j{7}; j >= 0; j--) {
       int a{0}; // Track empty squares
 
       for (int i{0}; i < 8; i++) {
@@ -680,15 +680,15 @@ void Game::notationFEN() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::fileNotation() {
-  std::ofstream outputFile("movesPNG.txt", std::ios::app);
+  std::ofstream outputFile("movesPGN.txt", std::ios::app);
   if (outputFile.is_open()) {
 
     int a{2};
     for (const auto &i : moveLog) {
       if (a % 2 == 0) {
-        outputFile << a / 2 << ". " << notationPNG(i) << " ";
+        outputFile << a / 2 << ". " << notationPGN(i) << " ";
       } else {
-        outputFile << notationPNG(i) << '\n';
+        outputFile << notationPGN(i) << '\n';
       }
       a++;
     }

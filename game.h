@@ -78,7 +78,7 @@ public:
   ////////////////////////////////////////////////////////////////////////////////////////////////////
   // NOTATION
 
-  std::string notationPNG(const Move &move);
+  std::string notationPGN(const Move &move);
   void notationFEN();
   void fileNotation();
 
