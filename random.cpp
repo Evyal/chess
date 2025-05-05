@@ -17,7 +17,7 @@ int randomInt(int min, int max) {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Generate a random FLOAT in the range (min, max]
+// Generate a random FLOAT in the range [min, max)
 
 float randomFloat(float min, float max) {
   std::uniform_real_distribution dist(min, max);

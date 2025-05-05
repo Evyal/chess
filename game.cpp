@@ -80,9 +80,8 @@ void Game::run() {
 
     window.clear();
 
-    // Draw the board using the graphics object.
     boardGraphics.draw(window, isRotated);
-    gui.draw(); // Draw GUI elements
+    gui.draw();
     window.display();
   }
 }
@@ -414,19 +413,12 @@ void Game::handleCastling(bool kingSide) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Game::promotePawn(Move &move) {
-  // Determine the pawn color (assuming your Move or board state indicates
-  // this).
+  // Determine the pawn color 
   bool isWhite = board.getPiece(move.startX, move.startY)->isWhitePiece();
 
-  // Open the promotion popup and get the chosen piece type.
   int chosenPieceType = boardGraphics.showPromotionPopup(isWhite);
 
-  // Now, replace the pawn at the promotion square with the new piece.
-  // (Assuming you have a function or constructor for Queen, Rook, Bishop,
-  // Knight) For instance:
-
   switch (std::abs(chosenPieceType)) {
-
   case 5: // Queen
     move.promotionPiece = new Queen(isWhite);
     break;

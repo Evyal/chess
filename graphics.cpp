@@ -26,7 +26,7 @@ void BoardGraphics::loadTextures() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+  
 void BoardGraphics::loadPieceTextures() {
   std::map<int, std::string> pieceFiles = {
       {1, "wp.png"},  {2, "wr.png"},  {3, "wn.png"},  {4, "wb.png"},

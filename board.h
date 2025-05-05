@@ -6,7 +6,7 @@
 
 class Board {
 private:
-  // Logical board: each square holds a pointer to a Piece (or nullptr)
+  // Logical board: each square holds a pointer to a Piece (or nullptr for no piece)
   Piece *board[constants::squares][constants::squares] = {{}, {}, {}, {},
                                                           {}, {}, {}, {}};
 
