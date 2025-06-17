@@ -13,11 +13,11 @@ BoardGraphics::BoardGraphics(Board &board) : board_(board) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void BoardGraphics::loadTextures() {
-  if (!backgroundTexture.loadFromFile("../bases/background.png")) {
+  if (!backgroundTexture.loadFromFile("../assets/bases/background.png")) {
     std::cerr << "Failed to load ../bases/background.png" << std::endl;
   }
 
-  if (!boardTexture.loadFromFile("../bases/board.png")) {
+  if (!boardTexture.loadFromFile("../assets/bases/board.png")) {
     std::cerr << "Failed to load ../bases/board.png" << std::endl;
   }
 
@@ -35,7 +35,7 @@ void BoardGraphics::loadPieceTextures() {
 
   for (const auto &pair : pieceFiles) {
     int pieceType = pair.first;
-    std::string filename = "../bases/" + pair.second;
+    std::string filename = "../assets/bases/" + pair.second;
     if (!pieceTextures[pieceType].loadFromFile(filename)) {
       std::cerr << "Failed to load " << filename << std::endl;
     } else {

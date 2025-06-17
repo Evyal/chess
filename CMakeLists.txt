@@ -1,28 +1,54 @@
 cmake_minimum_required(VERSION 3.16)
-project(progettopf VERSION 0.1.0)
+project(chess VERSION 1.0.0)
 
-# abilita il supporto per i test, tra cui l'opzione BUILD_TESTING usata sotto
+# Enable testing support
 include(CTest)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# richiedi l'uso di C++17, senza estensioni non-standard offerte dal compilatore usato 
-set(CMAKE_CXX_STANDARD 17)
+# request use of C++20 
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# abilita warning
+# warning
 string(APPEND CMAKE_CXX_FLAGS
       " -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion"
-      " -Wshadow -Wimplicit-fallthrough -Wextra-semi -Wold-style-cast")
+      " -Wshadow -Wimplicit-fallthrough -Wextra-semi -Wold-style-cast"
+      " -fno-omit-frame-pointer")
 
-# abilita asserzioni di debug (in gcc), l'address sanitizer e l'undefined-behaviour sanitizer in debug mode
-# string(APPEND CMAKE_CXX_FLAGS_DEBUG " -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-omit-frame-pointer")
-# string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined -fno-omit-frame-pointer")
+# standard library assertions
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  string(APPEND CMAKE_CXX_FLAGS " -D_GLIBCXX_ASSERTIONS")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  string(APPEND CMAKE_CXX_FLAGS " -D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE")
+endif()
 
-find_package(SFML 2.5.1 COMPONENTS graphics REQUIRED)
+# address sanitizer and undefined-behaviour sanitizer in Debug mode
+string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address,undefined")
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  string(APPEND CMAKE_CXX_FLAGS " -D_GLIBCXX_SANITIZE_STD_ALLOCATOR")
+endif()
+string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " -fsanitize=address,undefined")
+
+# Find SFML and TGUI
+find_package(SFML 2.6 COMPONENTS graphics REQUIRED)
 find_package(TGUI 1 REQUIRED)
 
-add_executable(chess game.cpp random.cpp graphics.cpp piece.cpp board.cpp move.cpp main.cpp)
+# Source files
+file(GLOB SOURCES "source/*.cpp")
 
-target_link_libraries(chess sfml-graphics TGUI::TGUI)
+# Executable
+add_executable(chess ${SOURCES})
+
+# Link SFML and TGUI
+target_link_libraries(chess sfml-graphics sfml-window sfml-system TGUI::TGUI)
+
+# Link INCLUDE
+target_include_directories(chess PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+# Optionally enable tests
+# option(BUILD_TESTS "Build the tests executables" OFF)
+# if(BUILD_TESTS)
+#     add_subdirectory(testing)
+# endif()
